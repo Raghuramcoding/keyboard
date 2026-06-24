@@ -1,8 +1,10 @@
 name: Release
 
-# Push a tag like v2.0.1 to build the Windows installers and publish them
-# to a GitHub Release automatically:
-#   git tag v2.0.1 && git push origin v2.0.1
+# Cut a release by bumping the version and pushing a matching v* tag.
+# electron-builder publishes to the release named after package.json's version,
+# so bump it to match the tag:
+#   npm version 2.0.1            # updates package.json + creates the v2.0.1 tag
+#   git push origin main --tags  # triggers this workflow -> builds + publishes installers
 on:
   push:
     tags:
