@@ -1,4 +1,4 @@
-# Claude Code v2.0 — AI-Powered Coding Environment
+# Keyboard v2.0 — AI-Powered Coding Environment
 
 A cross-platform desktop coding environment with a Monaco editor, an embedded
 **real PowerShell terminal**, one-click **AI coding-agent launching**, dual AI
@@ -75,9 +75,9 @@ npm run package      # Unpacked app (release/win-unpacked/) — fastest
 ```
 
 Windows output in `release/`:
-- `Claude Code-Setup-2.0.0.exe` — installer (desktop + start-menu shortcuts,
+- `Keyboard-Setup-2.0.0.exe` — installer (desktop + start-menu shortcuts,
   choose install directory). Bundles everything; no extra dependencies to install.
-- `Claude Code-2.0.0-Portable.exe` — single-file runnable executable.
+- `Keyboard-2.0.0-Portable.exe` — single-file runnable executable.
 
 > The native terminal uses `node-pty`, shipped via ABI-stable N-API prebuilt
 > binaries, so packaging needs **no C++ compiler** (`npmRebuild` is disabled).
@@ -128,7 +128,7 @@ Windows output in `release/`:
 > renderer to a browser IIFE is what fixes the original "black screen" — the old
 > `tsc`-only setup emitted CommonJS the renderer couldn't load.
 
-A headless smoke test is built in: `CLAUDE_CODE_SMOKE=1 npx electron .` renders the
+A headless smoke test is built in: `KEYBOARD_SMOKE=1 npx electron .` renders the
 real UI, checks Monaco + xterm mounted, and runs a live PTY round-trip.
 
 ## Usage

@@ -1,7 +1,7 @@
 {
-  "name": "claude-code",
+  "name": "keyboard",
   "version": "2.0.0",
-  "description": "Claude Code — AI-powered coding environment with Ollama & Claude API support",
+  "description": "Keyboard — AI-powered coding environment with Ollama & Claude API support",
   "main": "dist/main.js",
   "scripts": {
     "build": "node build.js",
@@ -37,8 +37,8 @@
   "homepage": "https://github.com/Raghuramcoding/keyboard#readme",
   "type": "commonjs",
   "build": {
-    "appId": "com.claudecode.app",
-    "productName": "Claude Code",
+    "appId": "com.keyboard.app",
+    "productName": "Keyboard",
     "npmRebuild": false,
     "directories": {
       "output": "release"
@@ -63,7 +63,7 @@
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
-      "shortcutName": "Claude Code",
+      "shortcutName": "Keyboard",
       "artifactName": "${productName}-Setup-${version}.${ext}"
     },
     "portable": {

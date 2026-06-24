@@ -1,4 +1,4 @@
-// esbuild build script for Claude Code
+// esbuild build script for Keyboard
 // Bundles main (Electron), preload, the React/Monaco renderer, and Monaco's web workers
 // into browser/Node-compatible output. Without this, the renderer ships raw CommonJS
 // `require()` calls that don't exist in the sandboxed renderer -> black screen.

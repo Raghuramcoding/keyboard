@@ -6,7 +6,7 @@
 
 - [ ] `npm run build` passes
 - [ ] `npm run typecheck` passes
-- [ ] `CLAUDE_CODE_SMOKE=1 npx electron .` prints `SMOKE_RESULT PASS`
+- [ ] `KEYBOARD_SMOKE=1 npx electron .` prints `SMOKE_RESULT PASS`
 - [ ] I matched the existing code style
 
 ## Notes

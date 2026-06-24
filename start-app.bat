@@ -1,7 +1,7 @@
 @echo off
-title Claude Code
+title Keyboard
 echo ============================================
-echo   Claude Code v2.0 - Starting...
+echo   Keyboard v2.0 - Starting...
 echo ============================================
 echo.
 
@@ -30,6 +30,6 @@ call npm run build
 
 echo.
 echo ============================================
-echo   Launching Claude Code...
+echo   Launching Keyboard...
 echo ============================================
 npm start

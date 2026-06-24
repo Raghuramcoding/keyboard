@@ -1,4 +1,4 @@
-# Contributing to Claude Code
+# Contributing to Keyboard
 
 Thanks for your interest in contributing! This is a community project and
 contributions of all kinds are welcome — bug reports, features, docs, and fixes.
@@ -8,8 +8,8 @@ contributions of all kinds are welcome — bug reports, features, docs, and fixe
 You only need **Node.js 18+** to develop. Python is **not** required.
 
 ```bash
-git clone https://github.com/<your-username>/claude-code.git
-cd claude-code
+git clone https://github.com/Raghuramcoding/keyboard.git
+cd keyboard
 npm install
 npm run dev      # build + launch with auto-rebuild
 ```
@@ -32,7 +32,7 @@ Please make sure these pass:
 ```bash
 npm run build        # esbuild bundles cleanly
 npm run typecheck    # tsc --noEmit is clean
-CLAUDE_CODE_SMOKE=1 npx electron .    # headless smoke test prints SMOKE_RESULT PASS
+KEYBOARD_SMOKE=1 npx electron .    # headless smoke test prints SMOKE_RESULT PASS
 ```
 
 The smoke test verifies the UI mounts, Monaco + xterm load, a real PTY runs, the

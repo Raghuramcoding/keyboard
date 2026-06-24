@@ -10,8 +10,8 @@ const isDev = !app.isPackaged;
 const OLLAMA_HOST = process.env.OLLAMA_HOST || 'http://localhost:11434';
 
 // In smoke-test mode, isolate settings to a temp dir so we never clobber real settings.
-if (process.env.CLAUDE_CODE_SMOKE === '1') {
-  try { app.setPath('userData', join(require('os').tmpdir(), 'claude-code-smoke')); } catch { /* ignore */ }
+if (process.env.KEYBOARD_SMOKE === '1') {
+  try { app.setPath('userData', join(require('os').tmpdir(), 'keyboard-smoke')); } catch { /* ignore */ }
 }
 
 // ─── Optional native PTY (graceful fallback to piped shell) ──────────────────
@@ -71,7 +71,7 @@ async function saveSettings(s: Settings): Promise<void> {
 
 // ─── Window ──────────────────────────────────────────────────────────────────
 let mainWindow: BrowserWindow | null = null;
-const SMOKE = process.env.CLAUDE_CODE_SMOKE === '1';
+const SMOKE = process.env.KEYBOARD_SMOKE === '1';
 
 const createWindow = () => {
   mainWindow = new BrowserWindow({
@@ -79,7 +79,7 @@ const createWindow = () => {
     height: 880,
     minWidth: 940,
     minHeight: 640,
-    title: 'Claude Code',
+    title: 'Keyboard',
     backgroundColor: '#1e1e1e',
     autoHideMenuBar: true,
     show: !SMOKE,
@@ -385,7 +385,7 @@ ipcMain.handle('pty:create', (_e, { id, cwd, cols, rows }: { id: string; cwd?: s
 const smokePtyWrites: { id: string; data: string }[] = [];
 
 ipcMain.on('pty:write', (_e, { id, data }: { id: string; data: string }) => {
-  if (process.env.CLAUDE_CODE_SMOKE === '1') smokePtyWrites.push({ id, data });
+  if (process.env.KEYBOARD_SMOKE === '1') smokePtyWrites.push({ id, data });
   const p = ptys.get(id);
   if (!p) return;
   if ((p as any)._piped) p.stdin.write(data);
@@ -490,7 +490,7 @@ ipcMain.handle('app:info', () => ({
   userData: app.getPath('userData'),
 }));
 
-// ─── Headless smoke test (CLAUDE_CODE_SMOKE=1) ───────────────────────────────
+// ─── Headless smoke test (KEYBOARD_SMOKE=1) ───────────────────────────────
 async function runSmokeTest(win: BrowserWindow) {
   const errors: string[] = [];
   win.webContents.on('console-message', (_e, level, msg) => { if (level >= 3) errors.push(msg); });
@@ -501,7 +501,7 @@ async function runSmokeTest(win: BrowserWindow) {
       const text = document.body.innerText || '';
       return {
         rootChildren: root ? root.children.length : -1,
-        hasTitle: text.includes('Claude Code'),
+        hasTitle: text.includes('Keyboard'),
         monaco: !!document.querySelector('.monaco-editor'),
         xterm: !!document.querySelector('.xterm'),
         terminalDock: text.includes('TERMINAL'),
@@ -570,11 +570,11 @@ async function runSmokeTest(win: BrowserWindow) {
     const out = { ...report, ptyAvailable, ptyRan, twoAgents, tabCount, providerListed, providerGen, errors: errors.slice(0, 10), result: ok ? 'PASS' : 'FAIL' };
     console.log('SMOKE_REPORT ' + JSON.stringify(out));
     console.log('SMOKE_RESULT ' + out.result);
-    const outFile = process.env.CLAUDE_CODE_SMOKE_OUT;
+    const outFile = process.env.KEYBOARD_SMOKE_OUT;
     if (outFile) { try { require('fs').writeFileSync(outFile, JSON.stringify(out)); } catch { /* ignore */ } }
     app.exit(ok ? 0 : 1);
   } catch (e: any) {
-    const outFile = process.env.CLAUDE_CODE_SMOKE_OUT;
+    const outFile = process.env.KEYBOARD_SMOKE_OUT;
     if (outFile) { try { require('fs').writeFileSync(outFile, JSON.stringify({ result: 'FAIL', error: e.message })); } catch { /* ignore */ } }
     console.log('SMOKE_RESULT FAIL ' + e.message);
     app.exit(1);

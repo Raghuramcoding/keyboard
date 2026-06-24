@@ -226,7 +226,7 @@ const App: React.FC = () => {
   useEffect(() => {
     if (!editorRef.current) return;
     const inst = monaco.editor.create(editorRef.current, {
-      value: `// Welcome to Claude Code\n// Open a folder (top bar), launch an agent, or start coding here.\n\nfunction helloWorld() {\n  console.log("Hello, World!");\n}\n`,
+      value: `// Welcome to Keyboard\n// Open a folder (top bar), launch an agent, or start coding here.\n\nfunction helloWorld() {\n  console.log("Hello, World!");\n}\n`,
       language: 'typescript', theme: 'vs-dark', automaticLayout: true, fontSize: 14,
       fontFamily: "'Cascadia Code', 'Fira Code', 'Consolas', monospace", minimap: { enabled: true },
       scrollBeyondLastLine: false, tabSize: 2,
@@ -412,7 +412,7 @@ const App: React.FC = () => {
 
       {/* Title Bar */}
       <div style={styles.titleBar}>
-        <span style={styles.titleText}>⚡ Claude Code</span>
+        <span style={styles.titleText}>⌨️ Keyboard</span>
         <span style={styles.titleCenter}>
           <button onClick={() => setSidebarTab('models')} style={{ ...styles.tabBtn, ...(sidebarTab === 'models' ? styles.tabBtnActive : {}) }}>🤖 Models</button>
           <button onClick={() => { setSidebarTab('git'); fetchGitStatus(); }} style={{ ...styles.tabBtn, ...(sidebarTab === 'git' ? styles.tabBtnActive : {}) }}>🔀 Git</button>
