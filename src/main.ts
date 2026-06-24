@@ -83,6 +83,7 @@ const createWindow = () => {
     backgroundColor: '#1e1e1e',
     autoHideMenuBar: true,
     show: !SMOKE,
+    ...(existsSync(join(__dirname, '..', 'build', 'icon.png')) ? { icon: join(__dirname, '..', 'build', 'icon.png') } : {}),
     webPreferences: {
       preload: join(__dirname, 'preload.js'),
       nodeIntegration: false,

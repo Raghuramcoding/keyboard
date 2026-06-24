@@ -52,6 +52,7 @@
       "node_modules/node-pty/**/*"
     ],
     "win": {
+      "icon": "build/icon.ico",
       "target": [
         "nsis",
         "portable"
@@ -70,6 +71,7 @@
       "artifactName": "${productName}-${version}-Portable.${ext}"
     },
     "mac": {
+      "icon": "build/icon.icns",
       "target": [
         "dmg",
         "zip"
@@ -77,12 +79,20 @@
       "category": "public.app-category.developer-tools"
     },
     "linux": {
+      "icon": "build/icon.png",
       "target": [
         "AppImage",
         "deb"
       ],
       "category": "Development"
-    }
+    },
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "Raghuramcoding",
+        "repo": "keyboard"
+      }
+    ]
   },
   "dependencies": {
     "node-pty": "^1.1.0"
@@ -99,6 +109,7 @@
     "electron-builder": "^26.15.3",
     "esbuild": "^0.28.1",
     "monaco-editor": "^0.55.1",
+    "png2icons": "^2.0.1",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
     "typescript": "^6.0.3",

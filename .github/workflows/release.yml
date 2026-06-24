@@ -1,0 +1,35 @@
+name: Release
+
+# Push a tag like v2.0.1 to build the Windows installers and publish them
+# to a GitHub Release automatically:
+#   git tag v2.0.1 && git push origin v2.0.1
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Build & publish (Windows)
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - run: npm ci
+
+      - run: npm run build
+
+      # electron-builder creates/updates the GitHub Release for the pushed tag
+      # and uploads the installer + portable exe as assets.
+      - name: Build & publish installers
+        run: npx electron-builder --win nsis portable --publish always
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
