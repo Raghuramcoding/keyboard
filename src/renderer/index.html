@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Claude Code</title>
+    <style>
+      :root { --bg-base: #1e1e1e; --bg-panel: #252526; --bg-elevated: #2d2d2d; --accent: #0e639c; }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      body { overflow: hidden; background: #1e1e1e; }
+      ::-webkit-scrollbar { width: 8px; height: 8px; }
+      ::-webkit-scrollbar-track { background: #1e1e1e; }
+      ::-webkit-scrollbar-thumb { background: #424242; border-radius: 4px; }
+      ::-webkit-scrollbar-thumb:hover { background: #555; }
+      @keyframes blink { 50% { opacity: 0; } }
+      @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+      input[type="range"] { -webkit-appearance: none; appearance: none; height: 4px; background: #3c3c3c; border-radius: 2px; outline: none; }
+      input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 14px; height: 14px; border-radius: 50%; background: #0e639c; cursor: pointer; }
+      select option { background: #1e1e1e; color: #d4d4d4; }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+    <script src="./index.js"></script>
+</body>
+</html>
