@@ -1,10 +1,10 @@
-# Keyboard v2.0 — AI-Powered Coding Environment
+# Keyboard v1.0 — AI-Powered Coding Environment
 
 A cross-platform desktop coding environment with a Monaco editor, an embedded
 **real PowerShell terminal**, one-click **AI coding-agent launching**, dual AI
-chat providers (Ollama + Anthropic Claude), and Git/scaffolding tools.
+chat providers including Ollama and any other Openai compatible api, and Git/scaffolding tools.
 
-![Platform](https://img.shields.io/badge/platform-Windows%20|%20macOS%20|%20Linux-blue)
+![Platform](https://img.shields.io/badge/platform-Windows%20|)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![Version](https://img.shields.io/badge/version-2.0.0-purple)
 
