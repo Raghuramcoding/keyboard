@@ -4,7 +4,7 @@ A cross-platform desktop coding environment with a Monaco editor, an embedded
 **real PowerShell terminal**, one-click **AI coding-agent launching**, dual AI
 chat providers including Ollama and any other Openai compatible api, and Git/scaffolding tools.
 
-![Platform](https://img.shields.io/badge/platform-Windows%20|)
+[![Windows](https://custom-icon-badges.demolab.com/badge/Windows-0078D6?logo=windows11&logoColor=white)](#)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![Version](https://img.shields.io/badge/version-2.0.0-purple)
 
