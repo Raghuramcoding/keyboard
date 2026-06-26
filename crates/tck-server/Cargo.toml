@@ -1,0 +1,21 @@
+[package]
+name = "tck-server"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "T.C.K (TalentCloud Keyboard) — native server: AI proxy + PTY terminal"
+
+[[bin]]
+name = "tck-server"
+path = "src/main.rs"
+
+[dependencies]
+tokio = { version = "1", features = ["full"] }
+axum = { version = "0.7", features = ["ws"] }
+tower-http = { version = "0.6", features = ["fs", "trace"] }
+reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls"] }
+portable-pty = "0.8"
+serde = { workspace = true }
+serde_json = { workspace = true }
+tck-core = { workspace = true }
+futures-util = "0.3"

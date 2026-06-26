@@ -16,8 +16,9 @@ What you expected to happen.
 
 **Environment**
 - OS:
-- Node version (`node -v`):
-- Running from source or installer:
+- Rust version (`rustc --version`):
+- Browser:
+- Running from source or a release bundle:
 
 **Logs / screenshots**
 If applicable, paste terminal output or attach screenshots.

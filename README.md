@@ -1,144 +1,97 @@
-# Keyboard v1.0 — AI-Powered Coding Environment
+# ⌨️ T.C.K — TalentCloud Keyboard
 
-A cross-platform desktop coding environment with a Monaco editor, an embedded
-**real PowerShell terminal**, one-click **AI coding-agent launching**, dual AI
-chat providers including Ollama and any other Openai compatible api, and Git/scaffolding tools.
+[![CI](https://github.com/Raghuramcoding/keyboard/actions/workflows/ci.yml/badge.svg)](https://github.com/Raghuramcoding/keyboard/actions/workflows/ci.yml)
+[![Rust](https://img.shields.io/badge/built%20with-Rust-orange?logo=rust)](https://www.rust-lang.org)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
-[![Windows](https://custom-icon-badges.demolab.com/badge/Windows-0078D6?logo=windows11&logoColor=white)](#)
-![License](https://img.shields.io/badge/license-MIT-green)
-![Version](https://img.shields.io/badge/version-2.0.0-purple)
+**T.C.K (TalentCloud Keyboard)** is an AI-powered coding environment written
+**entirely in Rust** that runs **in your browser**. The UI compiles to
+WebAssembly (Dioxus); a small native server provides a real shell terminal and
+proxies AI requests.
 
-## Highlights
+> Previously an Electron/TypeScript app, T.C.K has been fully rewritten in Rust —
+> no JavaScript or TypeScript source remains. The UI is Rust → WASM, the backend
+> is Rust (axum + tokio).
 
-- **Embedded terminal (like VS Code)** — a true interactive PTY (PowerShell on
-  Windows) docked at the bottom, with tabs, resize, colors, and full-screen TUIs.
-- **AI agent auto-detection** — on startup the app scans your `PATH` for installed
-  coding agents (Claude Code, Codex, Gemini CLI, Aider, OpenCode, Cursor Agent,
-  Copilot CLI, Ollama). Each detected agent gets a toolbar button; clicking it
-  opens the terminal and runs it automatically.
-- **Custom command buttons** — define your own toolbar buttons (e.g. `npm run dev`)
-  in the Settings window; one click runs them in the terminal.
-- **Custom background & theming** — set a background image or color with adjustable
-  panel transparency, plus an accent color.
-- **AI chat** — Ollama (local), Claude (cloud), and **any OpenAI-compatible API**
-  with provider/model switching, plus refactor / docs / review / test-generation
-  actions on your editor buffer.
-- **Connect any OpenAI-compatible API** — add providers (OpenAI, OpenRouter, Groq,
-  Together, DeepSeek, Mistral, local LM Studio / llama.cpp, …) in Settings with a
-  base URL + API key. Generation goes through the **[Vercel AI SDK](https://ai-sdk.dev)**
-  (`@ai-sdk/openai-compatible`); discover/browse models from
-  **[models.dev](https://models.dev)** or fetch them live from the endpoint's
-  `/v1/models`.
-- **Git tools** — status, diffs, commit, branch create/switch on a chosen folder.
-- **Project scaffolding** — React+TS, Python CLI, Node/Express, and Rust templates.
-- **Self-contained** — no Python runtime required; the backend runs natively in
-  Electron's main process. Ships as a portable .exe and an NSIS installer.
+## Features
 
-## Quick Start (from source)
-
-Only **Node.js 18+** is required to run from source.
-
-```bash
-npm install
-npm run build
-npm start
-```
-
-Or use the convenience launcher: `start-app.bat` (Windows), `start-app.ps1`,
-or `./start-app.sh`.
-
-Dev mode with auto-rebuild on changes:
-
-```bash
-npm run dev
-```
-
-### Optional providers / agents
-
-- **Ollama** (local chat models): install from [ollama.ai](https://ollama.ai),
-  `ollama pull qwen2.5-coder`. Override the host with the `OLLAMA_HOST` env var.
-- **Claude** (cloud chat models): add your Anthropic API key in **Settings**
-  (or set `ANTHROPIC_API_KEY`).
-- **OpenAI-compatible** (OpenAI, OpenRouter, Groq, local LM Studio, …): in
-  **Settings → AI Providers**, add a provider with its base URL + API key, then
-  add models manually, fetch them from the endpoint, or browse models.dev.
-- **Coding agents**: install any CLI agent (e.g. `npm i -g @anthropic-ai/claude-code`)
-  and it appears as a toolbar button automatically.
-
-## Build installers
-
-```bash
-npm run dist:win     # Windows: NSIS installer + portable .exe  -> release/
-npm run dist:mac     # macOS:   DMG + ZIP
-npm run dist:linux   # Linux:   AppImage + DEB
-npm run package      # Unpacked app (release/win-unpacked/) — fastest
-```
-
-Windows output in `release/`:
-- `Keyboard-Setup-2.0.0.exe` — installer (desktop + start-menu shortcuts,
-  choose install directory). Bundles everything; no extra dependencies to install.
-- `Keyboard-2.0.0-Portable.exe` — single-file runnable executable.
-
-> The native terminal uses `node-pty`, shipped via ABI-stable N-API prebuilt
-> binaries, so packaging needs **no C++ compiler** (`npmRebuild` is disabled).
+- 🦀 **100% Rust** — `tck-ui` (Dioxus/WASM frontend), `tck-server` (axum backend), `tck-core` (shared types).
+- 🌐 **Runs in the browser** — the entire editor UI is WebAssembly.
+- 💻 **Real terminal** — a genuine PowerShell/bash session via a pseudo-terminal (`portable-pty`), streamed to the browser over a WebSocket.
+- 🤖 **Multi-provider AI** — Ollama, Claude, and any OpenAI-compatible endpoint (OpenAI, OpenRouter, Groq, DeepSeek, Mistral, **OpenCode Zen**, LM Studio, …).
+- 🚀 **AI agent launchers** — one-click buttons that start Claude Code, Codex, OpenCode, Gemini CLI, or Aider in the terminal.
+- ⚙️ **Settings** — manage providers (with presets), API keys, and custom command buttons; persisted in the browser's `localStorage`.
+- 📝 **Code editor** with a scratch buffer.
 
 ## Architecture
 
 ```
-┌──────────────────────────────────────────────────────────────┐
-│                        Electron App                          │
-│  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────────┐  │
-│  │ Sidebar  │  │  Monaco  │  │   Chat   │  │  Terminal     │  │
-│  │ models / │  │  Editor  │  │  panel   │  │  (xterm.js +  │  │
-│  │ git /    │  │          │  │          │  │   node-pty)   │  │
-│  │ scaffold │  │          │  │          │  │  agent launch │  │
-│  └────┬─────┘  └────┬─────┘  └────┬─────┘  └──────┬───────┘  │
-│       └─────────────┴── preload (contextBridge) ──┘          │
-│                            │ IPC                              │
-│  ┌─────────────────────────┴──────────────────────────────┐  │
-│  │              main.ts  (native Node backend)             │  │
-│  │  Ollama proxy · Claude API (fetch) · exec · file I/O    │  │
-│  │  PTY mgmt · agent detection · settings · dialogs        │  │
-│  └─────────────────────────────────────────────────────────┘  │
-└──────────────────────────────────────────────────────────────┘
-        │ http://localhost:11434         │ https://api.anthropic.com
-     Ollama (optional, local)         Claude API (optional, cloud)
+┌─────────────────────────────────────────────┐
+│  Browser                                     │
+│  ┌───────────────────────────────────────┐  │
+│  │ tck-ui  (Rust → WebAssembly, Dioxus)  │  │
+│  └───────────────┬───────────────────────┘  │
+└──────────────────┼──────────────────────────┘
+       /api/generate│  /ws/pty (WebSocket)
+┌──────────────────▼──────────────────────────┐
+│  tck-server (Rust, axum + tokio)             │
+│   • AI proxy  → Ollama / Claude / OpenAI-compat│
+│   • PTY bridge → PowerShell / bash            │
+│   • serves the WASM bundle                    │
+└─────────────────────────────────────────────┘
 ```
 
-| Component | Technology |
-|-----------|-----------|
-| UI | Electron + React + TypeScript + Monaco |
-| Terminal | xterm.js + node-pty (real PTY) |
-| Backend | Native Node in Electron main (no Python) |
-| AI providers | Ollama, Claude (fetch), OpenAI-compatible via Vercel AI SDK |
-| Model catalog | models.dev |
-| Bundler | esbuild (renderer + Monaco workers + main/preload) |
-| Packaging | electron-builder |
+| Crate        | Target                   | Responsibility                       |
+|--------------|--------------------------|--------------------------------------|
+| `tck-core`   | both                     | Shared serde types, provider presets |
+| `tck-ui`     | `wasm32-unknown-unknown` | Dioxus UI compiled to WebAssembly    |
+| `tck-server` | native                   | axum server: AI proxy + PTY + static |
 
-## Build pipeline
+## Quick start
 
-`npm run build` runs [`build.js`](build.js), which uses esbuild to bundle:
-- `src/main.ts` → `dist/main.js` (Node/CJS, `electron` + `node-pty` external)
-- `src/preload.ts` → `dist/preload.js`
-- `src/renderer/index.tsx` → `dist/renderer/index.js` (browser IIFE; React + Monaco)
-- Monaco's 5 web workers → `dist/renderer/*.worker.js`
+### Prerequisites
 
-> **Why a bundler?** The renderer runs sandboxed (`contextIsolation: true`,
-> `nodeIntegration: false`), so raw `require()` doesn't exist there. Bundling the
-> renderer to a browser IIFE is what fixes the original "black screen" — the old
-> `tsc`-only setup emitted CommonJS the renderer couldn't load.
+- [Rust](https://rustup.rs) (stable)
+- The WASM target: `rustup target add wasm32-unknown-unknown`
+- [Trunk](https://trunkrs.dev): `cargo install trunk` (or grab a prebuilt binary)
 
-A headless smoke test is built in: `KEYBOARD_SMOKE=1 npx electron .` renders the
-real UI, checks Monaco + xterm mounted, and runs a live PTY round-trip.
+### Build & run
 
-## Usage
+```bash
+# 1. Build the WebAssembly UI
+cd crates/tck-ui
+trunk build --release
+cd ../..
 
-- **Open a working folder** — top-bar 📁 button. Git and the terminal operate there.
-- **Launch an agent** — click a detected agent button; the terminal opens and runs it.
-- **Settings (⚙)** — custom buttons, background, accent color, terminal font size,
-  Anthropic API key, working directory.
-- **Toggle terminal** — the 🖥️ button.
+# 2. Run the server (serves the UI + provides terminal/AI)
+cargo run -p tck-server --release
+
+# 3. Open the app
+#    http://127.0.0.1:3000
+```
+
+### Live-reload development
+
+```bash
+# Terminal 1 — the backend
+cargo run -p tck-server
+
+# Terminal 2 — the UI with hot reload (proxies /api and /ws to :3000)
+cd crates/tck-ui
+trunk serve
+# open http://127.0.0.1:8080
+```
+
+## Configuration
+
+| Variable    | Default                  | Meaning                                  |
+|-------------|--------------------------|------------------------------------------|
+| `TCK_ADDR`  | `127.0.0.1:3000`         | Address the server binds to              |
+| `TCK_DIST`  | `crates/tck-ui/dist`     | Directory of the built WASM bundle       |
+
+Providers, API keys, and custom commands are configured in-app via **⚙ Settings**
+and stored in the browser.
 
 ## License
 
-MIT
+MIT — see [LICENSE](LICENSE).

@@ -4,9 +4,9 @@
 
 ## Checklist
 
-- [ ] `npm run build` passes
-- [ ] `npm run typecheck` passes
-- [ ] `KEYBOARD_SMOKE=1 npx electron .` prints `SMOKE_RESULT PASS`
+- [ ] `cargo clippy -p tck-core -p tck-server -- -D warnings` passes
+- [ ] `trunk build --release` (in `crates/tck-ui`) passes
+- [ ] `cargo build -p tck-server --release` passes
 - [ ] I matched the existing code style
 
 ## Notes

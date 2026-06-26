@@ -1,37 +1,64 @@
 name: Release
 
-# Cut a release by bumping the version and pushing a matching v* tag.
-# electron-builder publishes to the release named after package.json's version,
-# so bump it to match the tag:
-#   npm version 2.0.1            # updates package.json + creates the v2.0.1 tag
-#   git push origin main --tags  # triggers this workflow -> builds + publishes installers
+# Cut a release by pushing a v* tag:
+#   git tag v3.0.0 && git push origin v3.0.0
+# Each OS builds the WASM UI + native server and uploads a bundle that runs
+# the whole T.C.K app (open http://127.0.0.1:3000 after launching the server).
 on:
   push:
-    tags:
-      - 'v*'
+    tags: ['v*']
 
 permissions:
   contents: write
 
 jobs:
   release:
-    name: Build & publish (Windows)
-    runs-on: windows-latest
+    name: Build & publish (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            asset: tck-windows-x64
+            bin: tck-server.exe
+          - os: macos-latest
+            asset: tck-macos-arm64
+            bin: tck-server
+          - os: ubuntu-latest
+            asset: tck-linux-x64
+            bin: tck-server
     steps:
       - uses: actions/checkout@v4
 
-      - uses: actions/setup-node@v4
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
         with:
-          node-version: 20
-          cache: npm
+          targets: wasm32-unknown-unknown
 
-      - run: npm ci
+      - uses: Swatinem/rust-cache@v2
 
-      - run: npm run build
+      - name: Install Trunk
+        uses: jetli/trunk-action@v0.5.0
+        with:
+          version: latest
 
-      # electron-builder creates/updates the GitHub Release for the pushed tag
-      # and uploads the installer + portable exe as assets.
-      - name: Build & publish installers
-        run: npx electron-builder --win nsis portable --publish always
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build WASM UI
+        working-directory: crates/tck-ui
+        run: trunk build --release
+
+      - name: Build native server
+        run: cargo build -p tck-server --release
+
+      - name: Stage bundle
+        shell: bash
+        run: |
+          mkdir -p bundle/${{ matrix.asset }}/dist
+          cp target/release/${{ matrix.bin }} bundle/${{ matrix.asset }}/
+          cp -r crates/tck-ui/dist/* bundle/${{ matrix.asset }}/dist/
+          cd bundle && tar -czf ${{ matrix.asset }}.tar.gz ${{ matrix.asset }}
+
+      - name: Publish to release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: bundle/${{ matrix.asset }}.tar.gz

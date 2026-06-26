@@ -1,0 +1,27 @@
+# T.C.K — TalentCloud Keyboard
+# Pure-Rust workspace. The UI compiles to WebAssembly (browser); the server is
+# a native axum binary providing the AI proxy and the PTY terminal bridge.
+[workspace]
+resolver = "2"
+members = [
+    "crates/tck-core",
+    "crates/tck-ui",
+    "crates/tck-server",
+]
+
+[workspace.package]
+version = "3.0.0"
+edition = "2021"
+authors = ["TalentCloud"]
+license = "MIT"
+repository = "https://github.com/Raghuramcoding/keyboard"
+
+[workspace.dependencies]
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+tck-core = { path = "crates/tck-core" }
+
+# Smaller, optimized WASM/native release binaries.
+[profile.release]
+opt-level = "s"
+lto = true

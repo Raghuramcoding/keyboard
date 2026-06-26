@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "tck",
+      "runtimeExecutable": "target/debug/tck-server.exe",
+      "runtimeArgs": [],
+      "port": 3000
+    }
+  ]
+}

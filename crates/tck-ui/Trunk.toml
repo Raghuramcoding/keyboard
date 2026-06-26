@@ -1,0 +1,16 @@
+[build]
+target = "index.html"
+dist = "dist"
+
+[serve]
+# Proxy API + terminal websocket to the native T.C.K server during development.
+port = 8080
+
+[[proxy]]
+backend = "http://127.0.0.1:3000/api"
+rewrite = "/api/"
+
+[[proxy]]
+backend = "ws://127.0.0.1:3000/ws"
+rewrite = "/ws/"
+ws = true

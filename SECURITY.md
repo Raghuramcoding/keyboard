@@ -1,4 +1,4 @@
-# Security Policy
+# Security Policy — T.C.K (TalentCloud Keyboard)
 
 ## Reporting a vulnerability
 
@@ -10,9 +10,14 @@ We aim to acknowledge reports within a few days.
 
 ## Notes on this app
 
-- API keys (Anthropic, OpenAI-compatible providers) are stored locally in your
-  user-data `settings.json` and never committed to the repo.
-- The embedded terminal runs a real shell with your user privileges — only run
-  commands and agents you trust.
-- The renderer is sandboxed (`contextIsolation: true`, `nodeIntegration: false`);
-  all privileged operations go through the preload bridge and main-process IPC.
+- **The terminal runs a real shell with your user privileges.** The `tck-server`
+  PTY bridge spawns PowerShell/bash and streams it to the browser — only run
+  commands and agents you trust, and only connect to a server you control.
+- **Bind locally.** The server defaults to `127.0.0.1:3000`. Do not expose it to a
+  public network: anyone who can reach it gets shell access. There is currently no
+  authentication on the `/ws/pty` or `/api/generate` endpoints.
+- **API keys** (Anthropic, OpenAI-compatible providers) are stored in your
+  browser's `localStorage` and sent to `tck-server` only to make the upstream
+  request. They are never committed to the repo.
+- The UI is a sandboxed WebAssembly module in the browser; all OS access (shell,
+  outbound HTTP to providers) happens in the native `tck-server` process.

@@ -1,53 +1,32 @@
-# Enhancements — Implementation Status
+# T.C.K — Feature Status & Roadmap
 
-Originally extracted from README.md as a roadmap. As of v2.0 the backend was
-ported to native Node (no Python required) and most items below are implemented.
+T.C.K (TalentCloud Keyboard) is a **100% Rust** rewrite of the original
+Electron/TypeScript app. The UI is Rust → WebAssembly (Dioxus); the backend is
+Rust (axum). This document tracks which capabilities are implemented in the Rust
+version and what's planned next.
 
-Legend: ✅ done · 🟡 partial · ⬜ not yet
+Legend: ✅ done · 🟡 partial · ⬜ planned
 
-## Real Ollama API Integration ✅
-- ✅ Real API calls to Ollama (no placeholders) — `main.ts` calls `/api/generate`
-- ✅ Model discovery via `http://localhost:11434/api/tags`
-- ✅ Model download (`/api/pull`) and deletion (`/api/delete`) from the UI
-- 🟡 Multiple Ollama instances — single host configurable via `OLLAMA_HOST` env
+## Implemented in the Rust rewrite
 
-## Terminal Command Execution ✅
-- ✅ Real shell execution — embedded **PowerShell PTY** (node-pty + xterm.js)
-- ✅ Full command history / line editing — native shell handles it inside the PTY
-- ✅ Common dev commands (git, npm, agents, …) run in the real shell
-- ✅ Real-time streaming output — PTY streams bytes live to the terminal pane
+- ✅ **Runs in the browser** — entire UI compiled to WebAssembly.
+- ✅ **Real terminal** — PowerShell/bash via `portable-pty`, streamed to the browser over a WebSocket (`crates/tck-server`), rendered in `crates/tck-ui`.
+- ✅ **Ollama integration** — `/api/generate` proxy with graceful error reporting.
+- ✅ **Claude integration** — Anthropic Messages API via the server proxy.
+- ✅ **OpenAI-compatible providers** — OpenAI, OpenRouter, Groq, DeepSeek, Mistral, OpenCode Zen, LM Studio, llama.cpp (presets in `tck-core`).
+- ✅ **AI agent launchers** — Claude Code, Codex, OpenCode, Gemini CLI, Aider buttons that run in the terminal.
+- ✅ **Custom command buttons** — user-defined commands run in the terminal.
+- ✅ **Settings** persisted to the browser's `localStorage`.
+- ✅ **Code editor** scratch buffer.
 
-## Model Management UI ✅
-- ✅ Model selection with metadata (size, parameters, family)
-- ✅ Download / install interface (registry search + pull)
-- ✅ Model deletion
-- 🟡 Parameter tuning — temperature slider exposed (more params available in backend)
+## Planned / partial
 
-## Code Generation Features ✅
-- ✅ Refactor / document / review actions on the editor buffer
-- ✅ Test generation (pytest / Jest-Vitest aware)
-- 🟡 Inline completion — available via launching a CLI agent (Claude Code, etc.)
-
-## Git Integration ✅
-- ✅ Status, changed-file list, per-file diff
-- ✅ Commit (add all + commit), branch create / switch
-- ✅ Operates on the selected working folder
-
-## Project Scaffolding ✅
-- ✅ Templates: React+TS, Python CLI, Node/Express, Rust CLI
-- ✅ File generation (creates parent dirs automatically)
-
-## Additional Enhancements
-- ✅ AI-powered code review (Code Actions → Review)
-- ✅ Test generation
-- ✅ Cross-platform shells (PowerShell on Windows, bash elsewhere)
-- ✅ AI coding-agent auto-detection + one-click launch into the terminal
-- ✅ Custom command buttons + Settings window
-- ✅ Custom background image/color, accent color, theming
-- ✅ Self-contained packaging: portable .exe + NSIS installer (no Python needed)
-
-## Still open / future
-- ⬜ Streaming token-by-token rendering in the chat panel
-- ⬜ Multi-file project tree / explorer in the editor
-- ⬜ Plugin system
-- ⬜ Multiple simultaneous Ollama hosts
+- 🟡 **Terminal rendering** — ANSI escape codes are stripped for legibility; a
+  full VT/ANSI emulator (colors, cursor addressing) is not yet implemented.
+- ⬜ **Syntax highlighting** in the editor (e.g. via a Rust highlighter compiled to WASM).
+- ⬜ **File tree / open real files** (needs a file-access API in the server).
+- ⬜ **Model discovery UI** (list `/v1/models` from a provider in-app).
+- ⬜ **Streaming AI responses** (token-by-token over SSE/WebSocket).
+- ⬜ **Multiple terminal tabs.**
+- ⬜ **Themes / custom background.**
+- ⬜ **Desktop packaging** (e.g. via Dioxus desktop or Tauri) alongside the browser build.
