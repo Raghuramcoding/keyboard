@@ -31,6 +31,28 @@ struct ChatMsg {
     text: String,
 }
 
+// ----- mobile layout -----
+// On phones (narrow screens) only one panel is shown at a time, chosen by a
+// bottom tab bar. On wide screens all panels are visible and the tab bar hides.
+#[derive(Clone, Copy, PartialEq)]
+enum MobileTab {
+    Agents,
+    Editor,
+    Terminal,
+    Ai,
+}
+
+impl MobileTab {
+    fn class(self) -> &'static str {
+        match self {
+            MobileTab::Agents => "view-agents",
+            MobileTab::Editor => "view-editor",
+            MobileTab::Terminal => "view-terminal",
+            MobileTab::Ai => "view-ai",
+        }
+    }
+}
+
 // ----- shared state -----
 #[derive(Clone, Copy)]
 struct AppState {
@@ -45,6 +67,7 @@ struct AppState {
     term_lines: Signal<String>,
     term_connected: Signal<bool>,
     term: Coroutine<String>,
+    mobile_tab: Signal<MobileTab>,
 }
 
 fn load_settings() -> Settings {
@@ -122,6 +145,7 @@ fn App() -> Element {
     let chat = use_signal(Vec::<ChatMsg>::new);
     let busy = use_signal(|| false);
     let show_settings = use_signal(|| false);
+    let mobile_tab = use_signal(|| MobileTab::Editor);
     let mut term_lines = use_signal(String::new);
     let mut term_connected = use_signal(|| false);
 
@@ -174,12 +198,15 @@ fn App() -> Element {
         term_lines,
         term_connected,
         term,
+        mobile_tab,
     });
+
+    let view_class = state.mobile_tab.read().class();
 
     rsx! {
         div { class: "app",
             TitleBar {}
-            div { class: "body",
+            div { class: "body {view_class}",
                 Sidebar {}
                 div { class: "center",
                     Editor {}
@@ -187,8 +214,37 @@ fn App() -> Element {
                 }
                 ChatPanel {}
             }
+            MobileTabBar {}
             if *state.show_settings.read() {
                 SettingsModal {}
+            }
+        }
+    }
+}
+
+#[component]
+fn MobileTabBar() -> Element {
+    let mut state = use_context::<AppState>();
+    let active = *state.mobile_tab.read();
+    let tabs = [
+        (MobileTab::Agents, "🚀", "Agents"),
+        (MobileTab::Editor, "📝", "Editor"),
+        (MobileTab::Terminal, "💻", "Terminal"),
+        (MobileTab::Ai, "🤖", "AI"),
+    ];
+    rsx! {
+        div { class: "mobile-tabbar",
+            for (tab , icon , label) in tabs.iter() {
+                button {
+                    key: "{label}",
+                    class: if active == *tab { "mtab active" } else { "mtab" },
+                    onclick: {
+                        let t = *tab;
+                        move |_| state.mobile_tab.set(t)
+                    },
+                    span { class: "mtab-icon", "{icon}" }
+                    span { class: "mtab-label", "{label}" }
+                }
             }
         }
     }
@@ -337,7 +393,7 @@ fn TerminalPanel() -> Element {
         div { class: "terminal",
             div { class: "term-head",
                 span { class: if connected { "term-status on" } else { "term-status" } }
-                span { if connected { "PowerShell — connected" } else { "terminal — offline" } }
+                span { if connected { "Terminal — connected" } else { "Terminal — offline" } }
             }
             pre { class: "term-out", "{state.term_lines}" }
             div { class: "term-in",

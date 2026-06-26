@@ -194,11 +194,13 @@ async fn handle_pty(socket: WebSocket) {
         }
     };
 
-    // Launch the platform shell.
+    // Launch the platform shell: PowerShell on Windows; on macOS/Linux honor the
+    // user's $SHELL (zsh by default on macOS), falling back to /bin/bash.
     let mut cmd = if cfg!(windows) {
         CommandBuilder::new("powershell.exe")
     } else {
-        CommandBuilder::new("bash")
+        let shell = std::env::var("SHELL").unwrap_or_else(|_| "/bin/bash".to_string());
+        CommandBuilder::new(shell)
     };
     if let Ok(cwd) = std::env::current_dir() {
         cmd.cwd(cwd);

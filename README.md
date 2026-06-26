@@ -16,8 +16,9 @@ proxies AI requests.
 ## Features
 
 - 🦀 **100% Rust** — `tck-ui` (Dioxus/WASM frontend), `tck-server` (axum backend), `tck-core` (shared types).
-- 🌐 **Runs in the browser** — the entire editor UI is WebAssembly.
-- 💻 **Real terminal** — a genuine PowerShell/bash session via a pseudo-terminal (`portable-pty`), streamed to the browser over a WebSocket.
+- 🌐 **Runs in the browser** — the entire editor UI is WebAssembly. Works on **Windows, macOS, Linux**, and **iPhone/iPad (iOS Safari)**.
+- 📱 **Responsive** — a 3-column desktop layout that collapses to a touch-friendly tabbed layout (Agents · Editor · Terminal · AI) on phones.
+- 💻 **Real terminal** — a genuine shell session via a pseudo-terminal (`portable-pty`): PowerShell on Windows, your `$SHELL` (zsh/bash) on macOS & Linux, streamed to the browser over a WebSocket.
 - 🤖 **Multi-provider AI** — Ollama, Claude, and any OpenAI-compatible endpoint (OpenAI, OpenRouter, Groq, DeepSeek, Mistral, **OpenCode Zen**, LM Studio, …).
 - 🚀 **AI agent launchers** — one-click buttons that start Claude Code, Codex, OpenCode, Gemini CLI, or Aider in the terminal.
 - ⚙️ **Settings** — manage providers (with presets), API keys, and custom command buttons; persisted in the browser's `localStorage`.
@@ -91,6 +92,36 @@ trunk serve
 
 Providers, API keys, and custom commands are configured in-app via **⚙ Settings**
 and stored in the browser.
+
+## Platforms
+
+### macOS / Linux
+
+Build and run exactly as above — `tck-server` is cross-platform. The terminal
+uses your `$SHELL` (zsh on macOS by default, falling back to `/bin/bash`).
+
+### iPhone / iPad (and any phone)
+
+The UI is responsive and works in **iOS Safari** (and Android Chrome). Since a
+phone can't run the native server itself, point it at a T.C.K server running on
+your Mac/PC on the **same Wi-Fi**:
+
+```bash
+# On your computer: bind to all interfaces so the phone can reach it
+TCK_ADDR=0.0.0.0:3000 cargo run -p tck-server --release
+```
+
+Then on the phone open `http://<your-computer-LAN-IP>:3000` (e.g.
+`http://192.168.1.20:3000`). Find the IP with `ipconfig` (Windows),
+`ipconfig getifaddr en0` (macOS), or `hostname -I` (Linux).
+
+On a phone the layout collapses to a bottom tab bar — **Agents · Editor ·
+Terminal · AI** — so each panel gets the full screen; the on-screen keyboard
+drives the terminal and AI chat.
+
+> Use `http://` on the LAN (not `https://`) so the terminal's `ws://` WebSocket
+> connects. The server has no authentication — only run it on a trusted network,
+> since anyone who can reach it gets shell access.
 
 ## License
 

@@ -42,7 +42,10 @@ input, select, textarea {
   padding: 5px 8px;
 }
 
-.app { display: flex; flex-direction: column; height: 100vh; }
+.app { display: flex; flex-direction: column; height: 100vh; height: 100dvh; }
+
+/* Mobile tab bar — hidden on desktop, shown on phones (see media query). */
+.mobile-tabbar { display: none; }
 
 /* Title bar */
 .titlebar {
@@ -122,3 +125,54 @@ input, select, textarea {
 .muted { color: var(--muted); }
 .right { display: flex; gap: 8px; justify-content: flex-end; margin-top: 14px; }
 .pill { font-size: 10px; padding: 2px 7px; border-radius: 10px; background: var(--bg3); }
+
+/* ===================== Mobile / iPhone layout ===================== */
+/* On narrow touch screens, show one panel at a time via the bottom tab bar. */
+@media (max-width: 820px) {
+  /* Prevent iOS auto-zoom on focus by keeping inputs >= 16px. */
+  input, select, textarea { font-size: 16px; }
+
+  .titlebar { flex-wrap: wrap; gap: 8px; padding: 8px 10px; }
+  .titlebar select, .titlebar input { min-width: 0; flex: 1; }
+  .brand .sub { display: none; }
+
+  /* All main panels become full-width; visibility is driven by the view class. */
+  .sidebar, .chat, .center { display: none; width: 100%; border: none; }
+  .sidebar { width: 100%; }
+
+  .body.view-agents .sidebar { display: flex; }
+  .body.view-ai .chat { display: flex; }
+  .body.view-editor .center,
+  .body.view-terminal .center { display: flex; }
+
+  /* Editor view: hide the terminal; Terminal view: hide the editor. */
+  .body.view-editor .terminal { display: none; }
+  .body.view-terminal .tabbar,
+  .body.view-terminal .editor-wrap { display: none; }
+  .body.view-terminal .terminal { height: 100%; border-top: none; }
+
+  /* Bigger touch targets. */
+  .btn-col button { padding: 12px 14px; font-size: 14px; }
+  .term-in input, .chat-in textarea { padding: 12px; }
+
+  /* Settings modal fills the screen on phones. */
+  .modal { width: 100%; height: 100%; max-height: none; border-radius: 0; }
+  .modal-bg { align-items: stretch; }
+
+  /* Bottom tab bar. */
+  .mobile-tabbar {
+    display: flex;
+    border-top: 1px solid var(--border);
+    background: var(--bg2);
+    padding-bottom: env(safe-area-inset-bottom, 0);
+  }
+  .mtab {
+    flex: 1; display: flex; flex-direction: column; align-items: center; gap: 2px;
+    border: none; border-radius: 0; background: transparent; color: var(--muted);
+    padding: 8px 4px;
+  }
+  .mtab:hover { background: var(--bg3); }
+  .mtab.active { color: var(--accent2); background: var(--bg3); }
+  .mtab-icon { font-size: 18px; }
+  .mtab-label { font-size: 10px; }
+}
