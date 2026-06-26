@@ -6,6 +6,7 @@ use futures_util::{SinkExt, StreamExt};
 use gloo_net::http::Request;
 use gloo_net::websocket::{futures::WebSocket, Message as WsMessage};
 use gloo_storage::{LocalStorage, Storage};
+use serde_json::{json, Value};
 use tck_core::{
     claude_models, known_agents, provider_presets, CustomCommand, GenerateRequest,
     GenerateResponse, ProviderConfig, Settings,
@@ -68,6 +69,9 @@ struct AppState {
     term_connected: Signal<bool>,
     term: Coroutine<String>,
     mobile_tab: Signal<MobileTab>,
+    /// True once a native T.C.K server is detected (via /api/health). When false
+    /// (e.g. served from GitHub Pages) AI calls go directly to the provider.
+    server: Signal<bool>,
 }
 
 fn load_settings() -> Settings {
@@ -121,6 +125,10 @@ fn sanitize_terminal(s: &str) -> String {
     out
 }
 
+fn terminal_offline_msg() -> String {
+    "[T.C.K terminal offline]\r\nThe terminal needs the native T.C.K server, which can't run on a\r\nstatic host like GitHub Pages. To use it, run the server locally:\r\n\r\n    cargo run -p tck-server\r\n\r\nThen reload this page from http://127.0.0.1:3000\r\n".to_string()
+}
+
 fn ws_url() -> String {
     let loc = web_sys::window().unwrap().location();
     let proto = if loc.protocol().unwrap_or_default() == "https:" {
@@ -146,18 +154,44 @@ fn App() -> Element {
     let busy = use_signal(|| false);
     let show_settings = use_signal(|| false);
     let mobile_tab = use_signal(|| MobileTab::Editor);
+    let mut server = use_signal(|| false);
     let mut term_lines = use_signal(String::new);
     let mut term_connected = use_signal(|| false);
+
+    // Detect a native T.C.K server. On a static host (GitHub Pages) this 404s and
+    // we stay in "serverless" mode: AI calls go straight to the provider.
+    use_future(move || async move {
+        if let Ok(resp) = Request::get("/api/health").send().await {
+            if resp.ok() {
+                if let Ok(t) = resp.text().await {
+                    if t.trim() == "ok" {
+                        server.set(true);
+                    }
+                }
+            }
+        }
+    });
 
     // Terminal: connect to the server's PTY bridge over a WebSocket. Anything
     // sent to this coroutine is written to the shell; output streams back in.
     let term = use_coroutine(move |mut rx: UnboundedReceiver<String>| async move {
         match WebSocket::open(&ws_url()) {
             Ok(ws) => {
-                term_connected.set(true);
                 let (mut write, mut read) = ws.split();
+                // Mark connected on the first received byte; if the stream ends
+                // without any data (e.g. a static host with no PTY bridge), show
+                // the offline notice instead of leaving the pane blank.
                 spawn(async move {
-                    while let Some(Ok(msg)) = read.next().await {
+                    let mut received = false;
+                    while let Some(item) = read.next().await {
+                        let msg = match item {
+                            Ok(m) => m,
+                            Err(_) => break,
+                        };
+                        if !received {
+                            received = true;
+                            term_connected.set(true);
+                        }
                         let text = match msg {
                             WsMessage::Text(t) => t,
                             WsMessage::Bytes(b) => String::from_utf8_lossy(&b).to_string(),
@@ -170,6 +204,9 @@ fn App() -> Element {
                         term_lines.set(cur);
                     }
                     term_connected.set(false);
+                    if !received {
+                        term_lines.set(terminal_offline_msg());
+                    }
                 });
                 while let Some(input) = rx.next().await {
                     if write.send(WsMessage::Text(input)).await.is_err() {
@@ -177,10 +214,8 @@ fn App() -> Element {
                     }
                 }
             }
-            Err(e) => {
-                term_lines.set(format!(
-                    "[T.C.K terminal offline] Could not reach the server: {e}\r\nStart it with:  cargo run -p tck-server\r\n"
-                ));
+            Err(_) => {
+                term_lines.set(terminal_offline_msg());
                 term_connected.set(false);
             }
         }
@@ -199,6 +234,7 @@ fn App() -> Element {
         term_connected,
         term,
         mobile_tab,
+        server,
     });
 
     let view_class = state.mobile_tab.read().class();
@@ -433,8 +469,9 @@ fn ChatPanel() -> Element {
         });
         state.busy.set(true);
         let req = build_request(&state, text);
+        let has_server = *state.server.peek();
         spawn(async move {
-            let resp = call_generate(req).await;
+            let resp = call_generate(req, has_server).await;
             let msg = match (resp.response, resp.error) {
                 (Some(r), _) => ChatMsg { role: Role::Ai, text: r },
                 (_, Some(e)) => ChatMsg { role: Role::Err, text: e },
@@ -518,7 +555,12 @@ fn build_request(state: &AppState, prompt: String) -> GenerateRequest {
     req
 }
 
-async fn call_generate(req: GenerateRequest) -> GenerateResponse {
+async fn call_generate(req: GenerateRequest, has_server: bool) -> GenerateResponse {
+    // With a native server present, proxy through it (no CORS, keys never touch
+    // the page origin). On a static host (GitHub Pages) call the provider direct.
+    if !has_server {
+        return generate_direct(req).await;
+    }
     let built = match Request::post("/api/generate").json(&req) {
         Ok(b) => b,
         Err(e) => {
@@ -542,6 +584,123 @@ async fn call_generate(req: GenerateRequest) -> GenerateResponse {
             ..Default::default()
         },
     }
+}
+
+/// Serverless mode: call the AI provider straight from the browser. Works for
+/// CORS-friendly providers (Anthropic with the browser-access header, OpenRouter,
+/// a local Ollama with `OLLAMA_ORIGINS=*`, etc.).
+async fn generate_direct(req: GenerateRequest) -> GenerateResponse {
+    let result = match req.provider.as_str() {
+        "ollama" => direct_ollama(&req).await,
+        "claude" => direct_claude(&req).await,
+        _ => direct_openai(&req).await,
+    };
+    match result {
+        Ok(text) => GenerateResponse {
+            response: Some(text),
+            model: Some(req.model),
+            ..Default::default()
+        },
+        Err(e) => GenerateResponse {
+            error: Some(e),
+            ..Default::default()
+        },
+    }
+}
+
+async fn direct_ollama(req: &GenerateRequest) -> Result<String, String> {
+    let host = req
+        .base_url
+        .clone()
+        .filter(|s| !s.is_empty())
+        .unwrap_or_else(|| "http://localhost:11434".to_string());
+    let url = format!("{}/api/generate", host.trim_end_matches('/'));
+    let body = json!({
+        "model": req.model, "prompt": req.prompt,
+        "system": req.system.clone().unwrap_or_default(), "stream": false,
+    });
+    let resp = Request::post(&url)
+        .json(&body)
+        .map_err(|e| e.to_string())?
+        .send()
+        .await
+        .map_err(|e| format!("Cannot reach Ollama: {e}"))?;
+    let v: Value = resp.json().await.map_err(|e| format!("Bad Ollama response: {e}"))?;
+    if let Some(err) = v.get("error") {
+        return Err(format!("Ollama error: {}", err.as_str().unwrap_or("unknown")));
+    }
+    Ok(v["response"].as_str().unwrap_or_default().to_string())
+}
+
+async fn direct_claude(req: &GenerateRequest) -> Result<String, String> {
+    let key = req.api_key.clone().unwrap_or_default();
+    if key.is_empty() {
+        return Err("No Claude API key configured (set it in Settings).".to_string());
+    }
+    let body = json!({
+        "model": req.model, "max_tokens": req.max_tokens.unwrap_or(2048),
+        "system": req.system.clone().unwrap_or_default(),
+        "messages": [{ "role": "user", "content": req.prompt }],
+    });
+    let resp = Request::post("https://api.anthropic.com/v1/messages")
+        .header("x-api-key", &key)
+        .header("anthropic-version", "2023-06-01")
+        .header("anthropic-dangerous-direct-browser-access", "true")
+        .json(&body)
+        .map_err(|e| e.to_string())?
+        .send()
+        .await
+        .map_err(|e| format!("Cannot reach Claude API: {e}"))?;
+    let v: Value = resp.json().await.map_err(|e| format!("Bad Claude response: {e}"))?;
+    if let Some(err) = v.get("error") {
+        return Err(format!("Claude error: {err}"));
+    }
+    Ok(v["content"][0]["text"].as_str().unwrap_or_default().to_string())
+}
+
+async fn direct_openai(req: &GenerateRequest) -> Result<String, String> {
+    let base = req.base_url.clone().unwrap_or_default();
+    if base.is_empty() {
+        return Err(format!("Provider \"{}\" has no base URL configured.", req.provider));
+    }
+    let url = format!("{}/chat/completions", base.trim_end_matches('/'));
+    let mut messages = Vec::new();
+    if let Some(sys) = &req.system {
+        if !sys.is_empty() {
+            messages.push(json!({ "role": "system", "content": sys }));
+        }
+    }
+    messages.push(json!({ "role": "user", "content": req.prompt }));
+    let mut body = json!({ "model": req.model, "messages": messages });
+    if let Some(t) = req.temperature {
+        body["temperature"] = json!(t);
+    }
+    if let Some(m) = req.max_tokens {
+        body["max_tokens"] = json!(m);
+    }
+    let mut rb = Request::post(&url);
+    if let Some(k) = &req.api_key {
+        if !k.is_empty() {
+            rb = rb.header("Authorization", &format!("Bearer {k}"));
+        }
+    }
+    let resp = rb
+        .json(&body)
+        .map_err(|e| e.to_string())?
+        .send()
+        .await
+        .map_err(|e| format!("{} request failed: Cannot connect to API: {e}", req.provider))?;
+    let v: Value = resp
+        .json()
+        .await
+        .map_err(|e| format!("{} returned a non-JSON response: {e}", req.provider))?;
+    if let Some(err) = v.get("error") {
+        return Err(format!("{} error: {err}", req.provider));
+    }
+    Ok(v["choices"][0]["message"]["content"]
+        .as_str()
+        .unwrap_or_default()
+        .to_string())
 }
 
 // ----- Settings modal -----

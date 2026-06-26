@@ -123,6 +123,30 @@ drives the terminal and AI chat.
 > connects. The server has no authentication — only run it on a trusted network,
 > since anyone who can reach it gets shell access.
 
+## Hosted on GitHub Pages
+
+The UI is also published as a static site:
+**<https://raghuramcoding.github.io/keyboard/>**
+
+Every push to `main` runs [`.github/workflows/pages.yml`](.github/workflows/pages.yml),
+which builds the WASM bundle (`trunk build --release --public-url /keyboard/`) and
+deploys it (Pages is auto-enabled on first run).
+
+T.C.K detects at runtime whether a native `tck-server` is reachable:
+
+- **With the local server** (`cargo run -p tck-server`, then open `http://127.0.0.1:3000`):
+  AI is proxied through the server and the **terminal works**.
+- **On GitHub Pages** (static, no server): the editor, settings, and AI chat work,
+  but AI calls go **directly from the browser** to the provider, so the provider
+  must allow browser CORS:
+  - ✅ **Anthropic Claude** (T.C.K sends the `anthropic-dangerous-direct-browser-access` header)
+  - ✅ **OpenRouter**, and a local **Ollama** started with `OLLAMA_ORIGINS=*`
+  - ❌ Providers that block browser CORS (e.g. OpenAI's own API) — use the local server for those
+  - The **terminal is unavailable** on Pages (it requires the native PTY server)
+
+> Deploying under a different repo name? Change `--public-url /<repo>/` in the
+> Pages workflow to match.
+
 ## License
 
 MIT — see [LICENSE](LICENSE).

@@ -6,6 +6,12 @@
       "runtimeExecutable": "target/debug/tck-server.exe",
       "runtimeArgs": [],
       "port": 3000
+    },
+    {
+      "name": "tck-static",
+      "runtimeExecutable": "python",
+      "runtimeArgs": ["-m", "http.server", "3005", "--directory", "crates/tck-ui/dist"],
+      "port": 3005
     }
   ]
 }
