@@ -1,0 +1,42 @@
+# T.C.K deployment for a single server (e.g. a Hetzner Cloud VM).
+# Caddy terminates TLS (automatic Let's Encrypt) and reverse-proxies to the app,
+# gating everything behind HTTP basic auth (the terminal is a real shell).
+#
+#   cp deploy/.env.example .env   # then edit it
+#   docker compose up -d --build
+
+services:
+  tck:
+    build: .
+    restart: unless-stopped
+    environment:
+      TCK_ADDR: "0.0.0.0:3000"
+      TCK_DIST: "/app/dist"
+    # env_file passes values to the container literally (no interpolation), so
+    # secrets and the bcrypt hash with '$' survive intact. Provides TCK_GITHUB_*.
+    env_file:
+      - .env
+    # No published ports: only Caddy can reach it (over the compose network).
+    expose:
+      - "3000"
+
+  caddy:
+    image: caddy:2
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    # Only the domain comes from env; the basic-auth hash lives in the Caddyfile
+    # (a bcrypt hash's '$' chars can't pass cleanly through Compose interpolation).
+    environment:
+      TCK_DOMAIN: "${TCK_DOMAIN}"
+    volumes:
+      - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - tck
+
+volumes:
+  caddy_data:
+  caddy_config:

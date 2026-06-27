@@ -1,0 +1,29 @@
+# Native (no-Docker) deployment. Install to /etc/systemd/system/tck-server.service
+# after building the binary and copying it + the WASM dist to /opt/tck.
+# Put a TLS reverse proxy (Caddy/nginx) in front; this binds to localhost only.
+
+[Unit]
+Description=T.C.K (TalentCloud Keyboard) server
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=tck
+Group=tck
+WorkingDirectory=/opt/tck
+Environment=TCK_ADDR=127.0.0.1:3000
+Environment=TCK_DIST=/opt/tck/dist
+# Secrets (GitHub OAuth client id/secret/callback). Create /etc/tck.env, chmod 600.
+EnvironmentFile=-/etc/tck.env
+ExecStart=/opt/tck/tck-server
+Restart=on-failure
+RestartSec=2
+
+# Light hardening. (The terminal must still spawn a usable shell, so we avoid
+# ProtectSystem=strict / ProtectHome here — add them if you don't need that.)
+NoNewPrivileges=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

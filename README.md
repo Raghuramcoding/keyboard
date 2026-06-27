@@ -186,6 +186,30 @@ T.C.K detects at runtime whether a native `tck-server` is reachable:
 > Deploying under a different repo name? Change `--public-url /<repo>/` in the
 > Pages workflow to match.
 
+## Deploy to your own server (Hetzner, VPS, …)
+
+To run the **full** app (terminal + Git + AI) on the internet you need a real
+server, not serverless — the backend keeps a long-lived process, a terminal
+WebSocket, and in-memory sessions. A `Dockerfile`, `docker-compose.yml`, Caddy
+config (auto-HTTPS + basic-auth), and a `systemd` unit are included:
+
+```bash
+git clone https://github.com/Raghuramcoding/keyboard.git && cd keyboard
+cp deploy/.env.example .env          # set TCK_DOMAIN (+ optional GitHub OAuth)
+# paste a basic-auth hash into deploy/Caddyfile (see the guide)
+docker compose up -d --build
+```
+
+Full instructions (Docker **and** no-Docker/systemd paths, OAuth callback,
+hardening) are in **[deploy/README.md](deploy/README.md)**.
+
+> ⚠️ The terminal is a real shell and the app has **no built-in auth** — anyone
+> who can reach an open instance gets a shell. Always keep it behind basic-auth
+> and/or a firewall, and run it as a non-root user (the provided configs do).
+>
+> It will **not** run on serverless hosts like Vercel (no persistent WebSocket/
+> PTY, ephemeral state); only the static UI can go there, like the Pages build.
+
 ## License
 
 MIT — see [LICENSE](LICENSE).

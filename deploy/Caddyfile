@@ -1,0 +1,21 @@
+# Caddy: automatic HTTPS + reverse proxy to the T.C.K server.
+# Caddy proxies WebSockets (the terminal) transparently.
+#
+# The domain comes from the TCK_DOMAIN env var. The basic-auth hash is written
+# LITERALLY below (env vars can't carry a bcrypt hash cleanly through Compose,
+# because of the '$' characters). Generate yours with:
+#   docker run --rm caddy caddy hash-password --plaintext 'your-strong-password'
+# and paste it after "admin" (or change the username).
+
+{$TCK_DOMAIN} {
+	encode gzip
+
+	# SECURITY: the terminal is a real shell and the app has no built-in auth,
+	# so the whole site sits behind HTTP basic auth. Replace the hash below.
+	# (If you instead lock the box down with a firewall/VPN, remove this block.)
+	basic_auth {
+		admin $2a$14$REPLACE_THIS_WITH_YOUR_GENERATED_HASH_xxxxxxxxxxxxxxxxxxxxxx
+	}
+
+	reverse_proxy tck:3000
+}
