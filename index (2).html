@@ -1,0 +1,1289 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark" data-accent="aurora">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>T.C.K — TalentCloud Keyboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; }
+
+html[data-theme="dark"] {
+  --bg: #0e1015;
+  --surface: #14161f;
+  --surface2: #181b26;
+  --raised: #1d2130;
+  --raisedh: #242938;
+  --bd: #262b3a;
+  --fg: #e8eaf0;
+  --mut: #888fa3;
+}
+html[data-theme="cream"] {
+  --bg: #fbf4ef;
+  --surface: #fff8f3;
+  --surface2: #f7ede6;
+  --raised: #f3e9e1;
+  --raisedh: #ecddd2;
+  --bd: #ecdfd5;
+  --fg: #1c1813;
+  --mut: #8a7d72;
+}
+html[data-accent="aurora"]  { --acc: linear-gradient(105deg,#35d0e3,#5b8def,#9277ff); --acc-shadow: rgba(91,141,239,.6); --acc-solid: #5b8def; }
+html[data-accent="electric"] { --acc: #5b8def; --acc-shadow: rgba(91,141,239,.6); --acc-solid: #5b8def; }
+html[data-accent="violet"]   { --acc: linear-gradient(120deg,#6d6bff,#a07cff); --acc-shadow: rgba(109,107,255,.6); --acc-solid: #8b88ff; }
+html[data-accent="cyan"]     { --acc: linear-gradient(110deg,#2bc7d6,#5ad3e6); --acc-shadow: rgba(43,199,214,.6); --acc-solid: #3ecfde; }
+
+body {
+  background: var(--bg);
+  font-family: 'Hanken Grotesk', system-ui, sans-serif;
+  font-size: 13px;
+  color: var(--fg);
+  overflow: hidden;
+}
+
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-thumb { background: #33394a; border-radius: 8px; border: 2px solid transparent; background-clip: content-box; }
+::-webkit-scrollbar-thumb:hover { background: #414961; border: 2px solid transparent; background-clip: content-box; }
+::-webkit-scrollbar-track { background: transparent; }
+input::placeholder, textarea::placeholder { color: #6a7184; }
+
+@keyframes tckpulse { 0%,100%{opacity:1}50%{opacity:.35} }
+@keyframes tckcaret  { 0%,49%{opacity:1}50%,100%{opacity:0} }
+
+.app {
+  height: 100vh;
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.accent-bar {
+  height: 2px;
+  background: var(--acc);
+  flex: none;
+}
+
+/* ── Titlebar ─────────────────────────────────────────────────────────── */
+.titlebar {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 0 16px;
+  height: 50px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--bd);
+  flex: none;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+}
+
+.brand-mark {
+  width: 30px;
+  height: 30px;
+  border-radius: 9px;
+  background: var(--acc);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 14px -4px rgba(91,141,239,.7);
+  flex: none;
+}
+
+.brand-text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.06;
+}
+
+.brand-name {
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 700;
+  font-size: 15.5px;
+  letter-spacing: .4px;
+}
+
+.brand-sub {
+  font-size: 10px;
+  color: var(--mut);
+  font-weight: 500;
+  letter-spacing: .5px;
+}
+
+.spacer { flex: 1; }
+
+.tb-select {
+  appearance: none;
+  background: var(--raised);
+  color: var(--fg);
+  border: 1px solid var(--bd);
+  border-radius: 9px;
+  padding: 7px 30px 7px 12px;
+  font: inherit;
+  font-size: 12.5px;
+  font-weight: 500;
+  cursor: pointer;
+  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" fill="none" stroke="%23888fa3" stroke-width="1.6"><path d="M2 4l3 3 3-3"/></svg>');
+  background-repeat: no-repeat;
+  background-position: right 11px center;
+}
+
+.tb-model {
+  width: 170px;
+  background: var(--raised);
+  color: var(--fg);
+  border: 1px solid var(--bd);
+  border-radius: 9px;
+  padding: 7px 12px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  outline: none;
+}
+
+.tb-icon-btn {
+  width: 36px;
+  height: 36px;
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--raised);
+  color: var(--fg);
+  border: 1px solid var(--bd);
+  border-radius: 9px;
+  cursor: pointer;
+  font-size: 15px;
+  transition: border-color .15s;
+}
+.tb-icon-btn:hover { border-color: var(--acc-solid); }
+
+.tb-settings-btn {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  background: var(--acc);
+  color: #fff;
+  border: none;
+  border-radius: 9px;
+  padding: 8px 15px;
+  font: inherit;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 4px 14px -4px var(--acc-shadow);
+  transition: filter .15s;
+}
+.tb-settings-btn:hover { filter: brightness(1.08); }
+
+/* ── Body layout ──────────────────────────────────────────────────────── */
+.body {
+  flex: 1;
+  display: flex;
+  min-height: 0;
+}
+
+/* ── Sidebar ──────────────────────────────────────────────────────────── */
+.sidebar {
+  width: 252px;
+  flex: none;
+  background: var(--surface);
+  border-right: 1px solid var(--bd);
+  overflow-y: auto;
+  padding: 16px 13px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.section-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 11px;
+}
+
+.section-pip {
+  width: 3px;
+  height: 12px;
+  border-radius: 3px;
+  background: var(--acc);
+  flex: none;
+}
+
+.section-label {
+  font-size: 10.5px;
+  text-transform: uppercase;
+  letter-spacing: .9px;
+  color: var(--mut);
+  font-weight: 600;
+}
+
+.section-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.agent-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  text-align: left;
+  padding: 8px 9px;
+  border-radius: 9px;
+  border: 1px solid var(--bd);
+  background: var(--raised);
+  color: var(--fg);
+  font: inherit;
+  font-size: 12.5px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background .12s, border-color .12s;
+}
+.agent-btn:hover { background: var(--raisedh); border-color: var(--acc-solid); }
+
+.agent-badge {
+  width: 22px;
+  height: 22px;
+  flex: none;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9.5px;
+  font-weight: 700;
+  color: #cfe0ff;
+  background: rgba(91,141,239,.16);
+  border: 1px solid rgba(91,141,239,.3);
+}
+
+.cmd-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  text-align: left;
+  padding: 8px 9px;
+  border-radius: 9px;
+  border: 1px solid var(--bd);
+  background: var(--raised);
+  color: var(--fg);
+  font: inherit;
+  font-size: 12.5px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background .12s;
+}
+.cmd-btn:hover { background: var(--raisedh); }
+
+.cmd-icon {
+  width: 22px;
+  height: 22px;
+  flex: none;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  color: #3fd99b;
+  background: rgba(63,217,155,.13);
+  border: 1px solid rgba(63,217,155,.28);
+}
+
+.cmd-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+}
+
+.sc-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 9px;
+}
+
+.sc-connected {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: #3fd99b;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.sc-disconnect {
+  background: none;
+  border: none;
+  color: var(--mut);
+  font: inherit;
+  font-size: 11px;
+  cursor: pointer;
+  padding: 2px 4px;
+  transition: color .12s;
+}
+.sc-disconnect:hover { color: #ff7a6b; }
+
+.repo-list { display: flex; flex-direction: column; gap: 4px; }
+
+.repo-btn {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  width: 100%;
+  text-align: left;
+  padding: 7px 9px;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  background: var(--raised);
+  color: var(--fg);
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+  overflow: hidden;
+  transition: border-color .12s;
+}
+.repo-btn:hover { border-color: var(--acc-solid); }
+
+.repo-name {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11.5px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.scaffold-select {
+  appearance: none;
+  width: 100%;
+  background: var(--raised);
+  color: var(--fg);
+  border: 1px solid var(--bd);
+  border-radius: 9px;
+  padding: 8px 30px 8px 11px;
+  font: inherit;
+  font-size: 12.5px;
+  cursor: pointer;
+  margin-bottom: 8px;
+  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" fill="none" stroke="%23888fa3" stroke-width="1.6"><path d="M2 4l3 3 3-3"/></svg>');
+  background-repeat: no-repeat;
+  background-position: right 11px center;
+  outline: none;
+}
+
+.scaffold-list { display: flex; flex-direction: column; gap: 6px; }
+
+.scaffold-btn {
+  width: 100%;
+  text-align: left;
+  padding: 8px 11px;
+  border-radius: 9px;
+  border: 1px solid var(--bd);
+  background: var(--raised);
+  color: var(--fg);
+  font: inherit;
+  font-size: 12.5px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background .12s;
+}
+.scaffold-btn:hover { background: var(--raisedh); }
+
+.scaffold-input {
+  width: 100%;
+  background: var(--raised);
+  color: var(--fg);
+  border: 1px solid var(--bd);
+  border-radius: 9px;
+  padding: 8px 11px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  outline: none;
+}
+
+.scaffold-create-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 8px 11px;
+  border-radius: 9px;
+  border: none;
+  background: var(--acc);
+  color: #fff;
+  font: inherit;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: filter .15s;
+}
+.scaffold-create-btn:hover { filter: brightness(1.08); }
+
+/* ── Main content ─────────────────────────────────────────────────────── */
+.main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.editor-tabs {
+  display: flex;
+  align-items: center;
+  background: var(--surface2);
+  border-bottom: 1px solid var(--bd);
+  flex: none;
+  padding-right: 10px;
+}
+
+.tab-active {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 10px 16px;
+  background: #0c0e13;
+  color: #e8eaf0;
+  font-size: 12.5px;
+  font-weight: 500;
+}
+
+.tab-lang-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+  background: #f0b07e;
+}
+
+.tab-underline {
+  position: absolute;
+  left: 0;
+  bottom: -1px;
+  height: 2px;
+  width: 100%;
+  background: var(--acc);
+}
+
+.tab-breadcrumb {
+  margin-left: 14px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: var(--mut);
+}
+
+.commit-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 13px;
+  border-radius: 8px;
+  border: none;
+  background: var(--acc);
+  color: #fff;
+  font: inherit;
+  font-size: 11.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: filter .15s;
+}
+.commit-btn:hover { filter: brightness(1.08); }
+
+.editor-body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  background: #0c0e13;
+  overflow: auto;
+}
+
+.line-nums {
+  flex: none;
+  padding: 14px 10px 14px 14px;
+  text-align: right;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px;
+  line-height: 22px;
+  color: #454b5e;
+  user-select: none;
+}
+
+.code-body {
+  flex: 1;
+  padding: 14px 16px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px;
+  line-height: 22px;
+  color: #d7dbe6;
+  white-space: pre;
+}
+
+/* ── Terminal ─────────────────────────────────────────────────────────── */
+.terminal {
+  height: 236px;
+  flex: none;
+  background: #0a0c11;
+  border-top: 1px solid var(--bd);
+  display: flex;
+  flex-direction: column;
+}
+
+.terminal-header {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 7px 14px;
+  background: var(--surface2);
+  border-bottom: 1px solid var(--bd);
+  flex: none;
+}
+
+.terminal-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #3fd99b;
+  box-shadow: 0 0 8px #3fd99b;
+  animation: tckpulse 2.4s ease-in-out infinite;
+}
+
+.terminal-title {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--fg);
+}
+
+.terminal-shell {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10.5px;
+  color: var(--mut);
+  background: var(--raised);
+  padding: 2px 8px;
+  border-radius: 6px;
+}
+
+.terminal-output {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 10px 14px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  line-height: 1.65;
+  color: #c9cdd8;
+  white-space: pre-wrap;
+}
+
+.terminal-row {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  border-top: 1px solid var(--bd);
+  padding: 0 14px;
+  flex: none;
+}
+
+.terminal-prompt {
+  font-family: 'JetBrains Mono', monospace;
+  color: #3fd99b;
+  font-size: 13px;
+}
+
+.terminal-input {
+  flex: 1;
+  background: none;
+  border: none;
+  outline: none;
+  color: #c9cdd8;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12.5px;
+  padding: 11px 0;
+}
+
+.caret {
+  display: inline-block;
+  width: 8px;
+  height: 15px;
+  background: #c9cdd8;
+  vertical-align: -2px;
+  animation: tckcaret 1.1s step-end infinite;
+}
+
+/* ── Chat panel ───────────────────────────────────────────────────────── */
+.chat-panel {
+  width: 362px;
+  flex: none;
+  background: var(--surface);
+  border-left: 1px solid var(--bd);
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.chat-header {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 13px 15px;
+  border-bottom: 1px solid var(--bd);
+  flex: none;
+}
+
+.chat-icon {
+  width: 24px;
+  height: 24px;
+  border-radius: 7px;
+  background: var(--acc);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+}
+
+.chat-title {
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.model-pill {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10.5px;
+  color: var(--mut);
+  background: var(--raised);
+  padding: 3px 9px;
+  border-radius: 7px;
+}
+
+.chat-messages {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 13px;
+}
+
+.msg-user { align-self: flex-end; max-width: 88%; }
+.msg-ai   { align-self: flex-start; max-width: 92%; }
+
+.msg-who {
+  font-size: 9.5px;
+  text-transform: uppercase;
+  letter-spacing: .7px;
+  color: var(--mut);
+  margin-bottom: 4px;
+}
+.msg-who.ai { color: #7fa6ff; }
+.msg-user .msg-who { text-align: right; }
+
+.msg-bubble-user {
+  background: var(--raised);
+  border: 1px solid var(--bd);
+  border-radius: 12px 12px 4px 12px;
+  padding: 9px 12px;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.msg-bubble-ai {
+  background: rgba(91,141,239,.09);
+  border: 1px solid rgba(91,141,239,.24);
+  border-radius: 12px 12px 12px 4px;
+  padding: 11px 12px;
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.code-ref {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  color: #9bb4ff;
+}
+
+.code-block {
+  margin-top: 9px;
+  background: #0a0c11;
+  border: 1px solid #20242f;
+  border-radius: 9px;
+  padding: 10px 11px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11.5px;
+  line-height: 1.6;
+  color: #d7dbe6;
+  white-space: pre;
+  overflow-x: auto;
+}
+
+.code-note { margin-top: 9px; }
+
+.chat-input-area {
+  border-top: 1px solid var(--bd);
+  padding: 12px;
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+.chat-textarea {
+  resize: none;
+  height: 62px;
+  background: var(--bg);
+  color: var(--fg);
+  border: 1px solid var(--bd);
+  border-radius: 10px;
+  padding: 10px 12px;
+  font: inherit;
+  font-size: 13px;
+  outline: none;
+  transition: border-color .15s;
+}
+.chat-textarea:focus { border-color: var(--acc-solid); }
+
+.chat-send-btn {
+  align-self: flex-end;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 9px 18px;
+  border-radius: 10px;
+  border: none;
+  background: var(--acc);
+  color: #fff;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 4px 14px -4px var(--acc-shadow);
+  transition: filter .15s;
+}
+.chat-send-btn:hover { filter: brightness(1.08); }
+
+/* ── Settings modal ───────────────────────────────────────────────────── */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(6,8,12,.62);
+  backdrop-filter: blur(3px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+  padding: 24px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .18s;
+}
+.modal-backdrop.open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.modal {
+  width: 560px;
+  max-width: 100%;
+  max-height: 84vh;
+  overflow-y: auto;
+  background: var(--surface);
+  border: 1px solid var(--bd);
+  border-radius: 16px;
+  box-shadow: 0 30px 80px -20px rgba(0,0,0,.7);
+  transform: translateY(10px);
+  transition: transform .18s;
+}
+.modal-backdrop.open .modal { transform: translateY(0); }
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 18px 20px;
+  border-bottom: 1px solid var(--bd);
+}
+
+.modal-icon {
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+  background: var(--acc);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+}
+
+.modal-title {
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 600;
+  font-size: 16px;
+}
+
+.modal-close {
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--raised);
+  border: 1px solid var(--bd);
+  border-radius: 8px;
+  color: var(--fg);
+  cursor: pointer;
+  transition: border-color .12s;
+}
+.modal-close:hover { border-color: #ff7a6b; }
+
+.modal-body {
+  padding: 18px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.field-label {
+  font-size: 10.5px;
+  text-transform: uppercase;
+  letter-spacing: .9px;
+  color: var(--mut);
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.field-input {
+  width: 100%;
+  background: var(--bg);
+  color: var(--fg);
+  border: 1px solid var(--bd);
+  border-radius: 9px;
+  padding: 9px 12px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  outline: none;
+  transition: border-color .15s;
+}
+.field-input:focus { border-color: var(--acc-solid); }
+
+.provider-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--raised);
+  border: 1px solid var(--bd);
+  border-radius: 10px;
+  padding: 10px 12px;
+  margin-bottom: 7px;
+}
+.provider-card:last-child { margin-bottom: 0; }
+
+.provider-name { font-weight: 600; font-size: 13px; }
+
+.provider-url {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: #7fa6ff;
+}
+
+.provider-remove {
+  background: none;
+  border: 1px solid var(--bd);
+  border-radius: 7px;
+  color: var(--mut);
+  font: inherit;
+  font-size: 11.5px;
+  padding: 5px 11px;
+  cursor: pointer;
+  transition: border-color .12s, color .12s;
+}
+.provider-remove:hover { border-color: #ff7a6b; color: #ff7a6b; }
+
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 9px;
+  padding: 16px 20px;
+  border-top: 1px solid var(--bd);
+}
+
+.btn-cancel {
+  padding: 9px 16px;
+  border-radius: 9px;
+  border: 1px solid var(--bd);
+  background: var(--raised);
+  color: var(--fg);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background .12s;
+}
+.btn-cancel:hover { background: var(--raisedh); }
+
+.btn-save {
+  padding: 9px 20px;
+  border-radius: 9px;
+  border: none;
+  background: var(--acc);
+  color: #fff;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 4px 14px -4px var(--acc-shadow);
+  transition: filter .15s;
+}
+.btn-save:hover { filter: brightness(1.08); }
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <div class="accent-bar"></div>
+
+  <div class="titlebar">
+    <div class="brand">
+      <div class="brand-mark">
+        <svg viewBox="0 0 26 17" width="17" height="11" aria-hidden="true">
+          <g fill="#fff">
+            <circle cx="8.5" cy="9.5" r="5.2"/>
+            <circle cx="15" cy="7" r="6.4"/>
+            <circle cx="19.5" cy="10.5" r="4.4"/>
+            <rect x="5" y="9.5" width="16" height="5.5" rx="2.7"/>
+          </g>
+        </svg>
+      </div>
+      <div class="brand-text">
+        <span class="brand-name">T.C.K</span>
+        <span class="brand-sub">TalentCloud Keyboard</span>
+      </div>
+    </div>
+
+    <div class="spacer"></div>
+
+    <select class="tb-select" id="providerSelect">
+      <option value="ollama">Ollama</option>
+      <option value="claude" selected>Claude</option>
+      <option value="openrouter">OpenRouter</option>
+      <option value="openai">OpenAI</option>
+    </select>
+
+    <input class="tb-model" id="modelInput" value="claude-sonnet-4" placeholder="model…">
+
+    <button class="tb-icon-btn" id="themeBtn" title="Toggle theme">☀</button>
+
+    <button class="tb-settings-btn" id="settingsBtn">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="3"/>
+        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+      </svg>
+      Settings
+    </button>
+  </div>
+
+  <div class="body">
+
+    <!-- Sidebar -->
+    <div class="sidebar">
+
+      <div>
+        <div class="section-head">
+          <span class="section-pip"></span>
+          <span class="section-label">AI Agents</span>
+        </div>
+        <div class="section-list">
+          <button class="agent-btn"><span class="agent-badge">CC</span>Claude Code</button>
+          <button class="agent-btn"><span class="agent-badge">CX</span>Codex</button>
+          <button class="agent-btn"><span class="agent-badge">OC</span>OpenCode</button>
+          <button class="agent-btn"><span class="agent-badge">GE</span>Gemini CLI</button>
+          <button class="agent-btn"><span class="agent-badge">AI</span>Aider</button>
+        </div>
+      </div>
+
+      <div>
+        <div class="section-head">
+          <span class="section-pip"></span>
+          <span class="section-label">Custom Commands</span>
+        </div>
+        <div class="section-list">
+          <button class="cmd-btn">
+            <span class="cmd-icon">▶</span>
+            <span class="cmd-label">cargo run</span>
+          </button>
+          <button class="cmd-btn">
+            <span class="cmd-icon">✓</span>
+            <span class="cmd-label">cargo test</span>
+          </button>
+          <button class="cmd-btn">
+            <span class="cmd-icon">⟳</span>
+            <span class="cmd-label">trunk serve</span>
+          </button>
+        </div>
+      </div>
+
+      <div>
+        <div class="section-head">
+          <span class="section-pip"></span>
+          <span class="section-label">Source Control</span>
+        </div>
+        <div class="sc-row">
+          <span class="sc-connected">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#3fd99b" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
+            raghuramcoding
+          </span>
+          <button class="sc-disconnect">Disconnect</button>
+        </div>
+        <div class="repo-list">
+          <button class="repo-btn">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#888fa3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+            <span class="repo-name">Raghuramcoding/keyboard</span>
+          </button>
+          <button class="repo-btn">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#888fa3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+            <span class="repo-name">Raghuramcoding/tck-server</span>
+          </button>
+          <button class="repo-btn">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#888fa3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+            <span class="repo-name">Raghuramcoding/portfolio</span>
+          </button>
+          <button class="repo-btn">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#888fa3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+            <span class="repo-name">Raghuramcoding/data-pipeline</span>
+          </button>
+        </div>
+      </div>
+
+      <div>
+        <div class="section-head">
+          <span class="section-pip"></span>
+          <span class="section-label">Scaffold</span>
+        </div>
+        <select class="scaffold-select">
+          <option value="rust">Rust CLI</option>
+          <option value="web">Static Web</option>
+          <option value="node">Node Service</option>
+          <option value="py">Python App</option>
+        </select>
+        <div class="scaffold-list">
+          <button class="scaffold-btn">Load into editor</button>
+          <input class="scaffold-input" placeholder="new-repo-name">
+          <button class="scaffold-create-btn">Create GitHub repo</button>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Editor + Terminal -->
+    <div class="main">
+
+      <div class="editor-tabs">
+        <div class="tab-active">
+          <span class="tab-lang-dot"></span>
+          main.rs
+          <span class="tab-underline"></span>
+        </div>
+        <span class="tab-breadcrumb">crates/tck-ui/src · main</span>
+        <div class="spacer"></div>
+        <button class="commit-btn">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5"/><path d="M5 12l7-7 7 7"/></svg>
+          Commit
+        </button>
+      </div>
+
+      <div class="editor-body">
+        <div class="line-nums">
+          <div>1</div><div>2</div><div>3</div><div>4</div><div>5</div>
+          <div>6</div><div>7</div><div>8</div><div>9</div><div>10</div>
+          <div>11</div><div>12</div><div>13</div><div>14</div>
+        </div>
+        <div class="code-body">
+<div><span style="color:#6b7488">// Welcome to T.C.K — TalentCloud Keyboard</span></div>
+<div><span style="color:#6b7488">// A pure-Rust AI coding environment running in your browser.</span></div>
+<div> </div>
+<div><span style="color:#c4a7ff">use</span> tck_core::<span style="color:#62d4e3">Talent</span>;</div>
+<div> </div>
+<div><span style="color:#c4a7ff">fn</span> <span style="color:#82a9ff">main</span>() {</div>
+<div>    <span style="color:#c4a7ff">let</span> t = <span style="color:#62d4e3">Talent</span>::<span style="color:#82a9ff">matched</span>(<span style="color:#74e0ad">"rust"</span>, <span style="color:#f0b07e">0.98</span>);</div>
+<div>    <span style="color:#82a9ff">println!</span>(<span style="color:#74e0ad">"Hello from T.C.K — best match: {}"</span>, t.name);</div>
+<div>}</div>
+<div> </div>
+<div><span style="color:#6b7488">/// Find the best-matched specialist for a stack.</span></div>
+<div><span style="color:#c4a7ff">fn</span> <span style="color:#82a9ff">best_match</span>(stack: &amp;<span style="color:#62d4e3">str</span>) -&gt; <span style="color:#62d4e3">Option</span>&lt;<span style="color:#62d4e3">Talent</span>&gt; {</div>
+<div>    <span style="color:#82a9ff">registry</span>().<span style="color:#82a9ff">into_iter</span>().<span style="color:#82a9ff">find</span>(|t| t.stack == stack)</div>
+<div>}</div>
+        </div>
+      </div>
+
+      <div class="terminal">
+        <div class="terminal-header">
+          <span class="terminal-dot"></span>
+          <span class="terminal-title">Terminal — connected</span>
+          <div class="spacer"></div>
+          <span class="terminal-shell">zsh</span>
+        </div>
+        <div class="terminal-output">
+<div><span style="color:#3fd99b">raghuram@tck</span> <span style="color:#5b8def">~/keyboard</span> $ cargo run -p tck-server</div>
+<div><span style="color:#62d4e3">   Compiling</span> tck-core v0.1.0</div>
+<div><span style="color:#62d4e3">   Compiling</span> tck-server v0.1.0</div>
+<div><span style="color:#3fd99b">    Finished</span> `dev` profile [unoptimized] in 3.41s</div>
+<div><span style="color:#3fd99b">     Running</span> `target/debug/tck-server`</div>
+<div><span style="color:#9277ff">›</span> T.C.K server listening on http://127.0.0.1:3000</div>
+<div><span style="color:#9277ff">›</span> PTY bridge ready · GitHub OAuth configured</div>
+<div><span style="color:#3fd99b">raghuram@tck</span> <span style="color:#5b8def">~/keyboard</span> $ <span class="caret"></span></div>
+        </div>
+        <div class="terminal-row">
+          <span class="terminal-prompt">$</span>
+          <input class="terminal-input" placeholder="type a command and press Enter…">
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Chat panel -->
+    <div class="chat-panel">
+      <div class="chat-header">
+        <span class="chat-icon">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 8V4H8"/><rect x="4" y="8" width="16" height="12" rx="2"/>
+            <path d="M2 14h2"/><path d="M20 14h2"/><path d="M15 13v2"/><path d="M9 13v2"/>
+          </svg>
+        </span>
+        <span class="chat-title">AI Chat</span>
+        <div class="spacer"></div>
+        <span class="model-pill">claude · sonnet</span>
+      </div>
+
+      <div class="chat-messages">
+        <div class="msg-user">
+          <div class="msg-who">You</div>
+          <div class="msg-bubble-user">Make <span class="code-ref">best_match</span> return a <span class="code-ref">Result</span> and surface unmatched stacks.</div>
+        </div>
+
+        <div class="msg-ai">
+          <div class="msg-who ai">Assistant</div>
+          <div class="msg-bubble-ai">
+            Here's a version that returns <span class="code-ref">Result</span> and reports misses to the caller:
+            <div class="code-block"><span style="color:#c4a7ff">fn</span> <span style="color:#82a9ff">best_match</span>(stack: &amp;<span style="color:#62d4e3">str</span>)
+   -&gt; <span style="color:#62d4e3">Result</span>&lt;<span style="color:#62d4e3">Talent</span>, <span style="color:#62d4e3">NoMatch</span>&gt; {
+   <span style="color:#82a9ff">registry</span>().<span style="color:#82a9ff">into_iter</span>()
+     .<span style="color:#82a9ff">find</span>(|t| t.stack == stack)
+     .<span style="color:#82a9ff">ok_or</span>(<span style="color:#62d4e3">NoMatch</span>(stack.<span style="color:#82a9ff">into</span>()))
+}</div>
+            <div class="code-note">It hands unmatched stacks back as an error instead of silently returning <span class="code-ref">None</span>.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="chat-input-area">
+        <textarea class="chat-textarea" placeholder="Message the model…"></textarea>
+        <button class="chat-send-btn">
+          Send
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M13 6l6 6-6 6"/></svg>
+        </button>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+<!-- Settings modal -->
+<div class="modal-backdrop" id="settingsModal">
+  <div class="modal" id="modalBox">
+    <div class="modal-header">
+      <span class="modal-icon">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="3"/>
+          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+        </svg>
+      </span>
+      <span class="modal-title">Settings</span>
+      <div class="spacer"></div>
+      <button class="modal-close" id="modalClose">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6L6 18"/><path d="M6 6l12 12"/></svg>
+      </button>
+    </div>
+
+    <div class="modal-body">
+      <div>
+        <div class="field-label">Claude API key</div>
+        <input type="password" class="field-input" value="sk-ant-api03-••••••••••••••••">
+      </div>
+      <div>
+        <div class="field-label">Ollama host</div>
+        <input class="field-input" value="http://localhost:11434">
+      </div>
+      <div>
+        <div class="field-label">OpenAI-compatible providers</div>
+        <div class="provider-card">
+          <div>
+            <div class="provider-name">OpenRouter</div>
+            <div class="provider-url">https://openrouter.ai/api/v1</div>
+          </div>
+          <button class="provider-remove">Remove</button>
+        </div>
+        <div class="provider-card">
+          <div>
+            <div class="provider-name">OpenCode Zen</div>
+            <div class="provider-url">https://opencode.ai/zen/v1</div>
+          </div>
+          <button class="provider-remove">Remove</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn-cancel" id="modalCancel">Cancel</button>
+      <button class="btn-save" id="modalSave">Save</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function() {
+  const html = document.documentElement;
+  const modal = document.getElementById('settingsModal');
+  const modalBox = document.getElementById('modalBox');
+  const themeBtn = document.getElementById('themeBtn');
+
+  function openModal() {
+    modal.classList.add('open');
+  }
+
+  function closeModal() {
+    modal.classList.remove('open');
+  }
+
+  document.getElementById('settingsBtn').addEventListener('click', openModal);
+  document.getElementById('modalClose').addEventListener('click', closeModal);
+  document.getElementById('modalCancel').addEventListener('click', closeModal);
+  document.getElementById('modalSave').addEventListener('click', closeModal);
+
+  modal.addEventListener('click', function(e) {
+    if (e.target === modal) closeModal();
+  });
+
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') closeModal();
+  });
+
+  themeBtn.addEventListener('click', function() {
+    const current = html.getAttribute('data-theme');
+    const next = current === 'dark' ? 'cream' : 'dark';
+    html.setAttribute('data-theme', next);
+    themeBtn.textContent = next === 'cream' ? '☽' : '☀';
+  });
+})();
+</script>
+
+</body>
+</html>
