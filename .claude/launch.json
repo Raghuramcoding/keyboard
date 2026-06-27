@@ -8,6 +8,17 @@
       "port": 3000
     },
     {
+      "name": "tck-gh",
+      "runtimeExecutable": "target/debug/tck-server.exe",
+      "runtimeArgs": [],
+      "port": 3000,
+      "env": {
+        "TCK_GITHUB_CLIENT_ID": "Iv1.testclientid",
+        "TCK_GITHUB_CLIENT_SECRET": "testsecret",
+        "TCK_DIST": "crates/tck-ui/dist"
+      }
+    },
+    {
       "name": "tck-static",
       "runtimeExecutable": "python",
       "runtimeArgs": ["-m", "http.server", "3005", "--directory", "crates/tck-ui/dist"],

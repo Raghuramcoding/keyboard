@@ -17,6 +17,8 @@ use std::io::{Read, Write};
 use tck_core::{GenerateRequest, GenerateResponse};
 use tower_http::services::{ServeDir, ServeFile};
 
+mod github;
+
 #[tokio::main]
 async fn main() {
     let dist = std::env::var("TCK_DIST").unwrap_or_else(|_| "crates/tck-ui/dist".to_string());
@@ -27,6 +29,7 @@ async fn main() {
         .route("/api/generate", post(generate))
         .route("/api/health", get(|| async { "ok" }))
         .route("/ws/pty", get(pty_ws))
+        .merge(github::router())
         .fallback_service(static_service);
 
     let addr = std::env::var("TCK_ADDR").unwrap_or_else(|_| "127.0.0.1:3000".to_string());

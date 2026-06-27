@@ -8,8 +8,9 @@ use gloo_net::websocket::{futures::WebSocket, Message as WsMessage};
 use gloo_storage::{LocalStorage, Storage};
 use serde_json::{json, Value};
 use tck_core::{
-    claude_models, known_agents, provider_presets, CustomCommand, GenerateRequest,
-    GenerateResponse, ProviderConfig, Settings,
+    claude_models, known_agents, provider_presets, scaffold_templates, CommitRequest,
+    CustomCommand, GenerateRequest, GenerateResponse, GitHubStatus, ProviderConfig, RepoEntry,
+    RepoFile, RepoInfo, ScaffoldToRepoRequest, Settings,
 };
 
 const SETTINGS_KEY: &str = "tck.settings";
@@ -72,6 +73,16 @@ struct AppState {
     /// True once a native T.C.K server is detected (via /api/health). When false
     /// (e.g. served from GitHub Pages) AI calls go directly to the provider.
     server: Signal<bool>,
+    // ----- GitHub / source control -----
+    gh: Signal<GitHubStatus>,
+    repos: Signal<Vec<RepoInfo>>,
+    /// Current repo being browsed and the directory path within it.
+    browse_repo: Signal<Option<String>>,
+    browse_path: Signal<String>,
+    entries: Signal<Vec<RepoEntry>>,
+    /// (repo, path, sha) of the file currently open from a repo, enabling Commit.
+    open_file: Signal<Option<(String, String, String)>>,
+    git_msg: Signal<String>,
 }
 
 fn load_settings() -> Settings {
@@ -155,11 +166,19 @@ fn App() -> Element {
     let show_settings = use_signal(|| false);
     let mobile_tab = use_signal(|| MobileTab::Editor);
     let mut server = use_signal(|| false);
+    let gh = use_signal(GitHubStatus::default);
+    let repos = use_signal(Vec::<RepoInfo>::new);
+    let browse_repo = use_signal(|| Option::<String>::None);
+    let browse_path = use_signal(String::new);
+    let entries = use_signal(Vec::<RepoEntry>::new);
+    let open_file = use_signal(|| Option::<(String, String, String)>::None);
+    let git_msg = use_signal(String::new);
     let mut term_lines = use_signal(String::new);
     let mut term_connected = use_signal(|| false);
 
     // Detect a native T.C.K server. On a static host (GitHub Pages) this 404s and
     // we stay in "serverless" mode: AI calls go straight to the provider.
+    let mut gh_w = gh;
     use_future(move || async move {
         if let Ok(resp) = Request::get("/api/health").send().await {
             if resp.ok() {
@@ -169,6 +188,10 @@ fn App() -> Element {
                     }
                 }
             }
+        }
+        // Also learn GitHub status (configured / already connected).
+        if let Some(s) = fetch_gh_status().await {
+            gh_w.set(s);
         }
     });
 
@@ -235,6 +258,13 @@ fn App() -> Element {
         term,
         mobile_tab,
         server,
+        gh,
+        repos,
+        browse_repo,
+        browse_path,
+        entries,
+        open_file,
+        git_msg,
     });
 
     let view_class = state.mobile_tab.read().class();
@@ -263,7 +293,7 @@ fn MobileTabBar() -> Element {
     let mut state = use_context::<AppState>();
     let active = *state.mobile_tab.read();
     let tabs = [
-        (MobileTab::Agents, "🚀", "Agents"),
+        (MobileTab::Agents, "🧰", "Tools"),
         (MobileTab::Editor, "📝", "Editor"),
         (MobileTab::Terminal, "💻", "Terminal"),
         (MobileTab::Ai, "🤖", "AI"),
@@ -397,6 +427,8 @@ fn Sidebar() -> Element {
                     }
                 }
             }
+            SourceControl {}
+            ScaffoldPanel {}
         }
     }
 }
@@ -404,9 +436,18 @@ fn Sidebar() -> Element {
 #[component]
 fn Editor() -> Element {
     let mut state = use_context::<AppState>();
+    let open_file = state.open_file.read().clone();
     rsx! {
         div { class: "tabbar",
             div { class: "tab active", "{state.filename}" }
+            if open_file.is_some() {
+                button {
+                    class: "commit-btn",
+                    title: "Commit this file to GitHub",
+                    onclick: move |_| commit_current(state),
+                    "⬆ Commit"
+                }
+            }
         }
         div { class: "editor-wrap",
             textarea {
@@ -417,6 +458,377 @@ fn Editor() -> Element {
             }
         }
     }
+}
+
+#[component]
+fn SourceControl() -> Element {
+    let state = use_context::<AppState>();
+    let gh = state.gh.read().clone();
+    let repos = state.repos.read().clone();
+    let entries = state.entries.read().clone();
+    let browse_repo = state.browse_repo.read().clone();
+    let browse_path = state.browse_path.read().clone();
+    let msg = state.git_msg.read().clone();
+
+    rsx! {
+        div {
+            div { class: "section-title", "Source Control" }
+            if !gh.configured {
+                div { class: "muted",
+                    "GitHub isn't configured on the server. Set TCK_GITHUB_CLIENT_ID and TCK_GITHUB_CLIENT_SECRET, then restart."
+                }
+            } else if !gh.connected {
+                a { class: "gh-btn", href: "/auth/github/login", "🔗 Connect GitHub" }
+            } else {
+                div { class: "gh-user",
+                    span { "✓ {gh.login.clone().unwrap_or_default()}" }
+                    button { class: "linkish", onclick: move |_| gh_logout(state), "Disconnect" }
+                }
+                div { class: "btn-col",
+                    button { onclick: move |_| load_repos(state), "↻ Load my repos" }
+                }
+                if let Some(repo) = browse_repo.clone() {
+                    div { class: "gh-crumb", "{repo}/{browse_path}" }
+                    div { class: "btn-col",
+                        button { class: "linkish", onclick: move |_| open_repo(state, repo.clone()), "⬅ repo root" }
+                        if !browse_path.is_empty() {
+                            button { class: "linkish", onclick: move |_| go_up(state), ".. up" }
+                        }
+                    }
+                    div { class: "gh-list",
+                        for e in entries.iter() {
+                            button { key: "{e.path}", class: "gh-entry",
+                                onclick: { let e2 = e.clone(); move |_| open_entry(state, e2.clone()) },
+                                if e.kind == "dir" { "📁 {e.name}" } else { "📄 {e.name}" }
+                            }
+                        }
+                    }
+                } else {
+                    div { class: "gh-list",
+                        for r in repos.iter() {
+                            button { key: "{r.full_name}", class: "gh-entry",
+                                onclick: { let name = r.full_name.clone(); move |_| open_repo(state, name.clone()) },
+                                "📦 {r.full_name}"
+                            }
+                        }
+                    }
+                }
+            }
+            if !msg.is_empty() {
+                div { class: "gh-msg", "{msg}" }
+            }
+        }
+    }
+}
+
+#[component]
+fn ScaffoldPanel() -> Element {
+    let state = use_context::<AppState>();
+    let templates = scaffold_templates();
+    let connected = state.gh.read().connected;
+    let mut sel = use_signal(|| {
+        templates.first().map(|t| t.id.clone()).unwrap_or_default()
+    });
+    let mut repo_name = use_signal(String::new);
+
+    rsx! {
+        div {
+            div { class: "section-title", "Scaffold" }
+            select {
+                style: "width:100%;margin-bottom:6px;",
+                value: "{sel}",
+                onchange: move |e| sel.set(e.value()),
+                for t in templates.iter() {
+                    option { key: "{t.id}", value: "{t.id}", "{t.name}" }
+                }
+            }
+            div { class: "btn-col",
+                button { onclick: move |_| load_template_into_editor(state, sel.peek().clone()), "📄 Load into editor" }
+                if connected {
+                    input {
+                        placeholder: "new-repo-name",
+                        value: "{repo_name}",
+                        oninput: move |e| repo_name.set(e.value()),
+                    }
+                    button {
+                        onclick: move |_| create_scaffold_repo(state, sel.peek().clone(), repo_name.peek().clone()),
+                        "🚀 Create GitHub repo"
+                    }
+                }
+            }
+        }
+    }
+}
+
+// ----- source-control / scaffold actions -----
+
+fn load_repos(state: AppState) {
+    let mut repos = state.repos;
+    let mut git_msg = state.git_msg;
+    let mut browse_repo = state.browse_repo;
+    git_msg.set("Loading repos…".to_string());
+    spawn(async move {
+        match fetch_repos().await {
+            Ok(list) => {
+                repos.set(list);
+                browse_repo.set(None);
+                git_msg.set(String::new());
+            }
+            Err(e) => git_msg.set(e),
+        }
+    });
+}
+
+fn open_repo(state: AppState, repo: String) {
+    let mut browse_repo = state.browse_repo;
+    let mut browse_path = state.browse_path;
+    browse_repo.set(Some(repo.clone()));
+    browse_path.set(String::new());
+    load_entries(state, repo, String::new());
+}
+
+fn load_entries(state: AppState, repo: String, path: String) {
+    let mut entries = state.entries;
+    let mut git_msg = state.git_msg;
+    git_msg.set("Loading…".to_string());
+    spawn(async move {
+        match fetch_contents(&repo, &path).await {
+            Ok(c) => {
+                entries.set(c.entries);
+                git_msg.set(String::new());
+            }
+            Err(e) => git_msg.set(e),
+        }
+    });
+}
+
+fn open_entry(state: AppState, e: RepoEntry) {
+    let repo = state.browse_repo.peek().clone().unwrap_or_default();
+    if e.kind == "dir" {
+        let mut browse_path = state.browse_path;
+        browse_path.set(e.path.clone());
+        load_entries(state, repo, e.path);
+    } else {
+        let mut code = state.code;
+        let mut filename = state.filename;
+        let mut open_file = state.open_file;
+        let mut git_msg = state.git_msg;
+        git_msg.set(format!("Opening {}…", e.name));
+        spawn(async move {
+            match fetch_contents(&repo, &e.path).await {
+                Ok(c) => {
+                    if let Some(file) = c.file {
+                        code.set(file.content);
+                        filename.set(e.name.clone());
+                        open_file.set(Some((file.repo, file.path, file.sha)));
+                        git_msg.set(String::new());
+                    } else {
+                        git_msg.set("That entry isn't a file.".to_string());
+                    }
+                }
+                Err(err) => git_msg.set(err),
+            }
+        });
+    }
+}
+
+fn go_up(state: AppState) {
+    let repo = state.browse_repo.peek().clone().unwrap_or_default();
+    let cur = state.browse_path.peek().clone();
+    let parent = match cur.rfind('/') {
+        Some(i) => cur[..i].to_string(),
+        None => String::new(),
+    };
+    let mut browse_path = state.browse_path;
+    browse_path.set(parent.clone());
+    load_entries(state, repo, parent);
+}
+
+fn gh_logout(state: AppState) {
+    let configured = state.gh.peek().configured;
+    let mut gh = state.gh;
+    let mut repos = state.repos;
+    let mut browse_repo = state.browse_repo;
+    let mut entries = state.entries;
+    let mut open_file = state.open_file;
+    let mut git_msg = state.git_msg;
+    spawn(async move {
+        let _ = Request::post("/api/github/logout").send().await;
+        gh.set(GitHubStatus {
+            configured,
+            connected: false,
+            login: None,
+        });
+        repos.set(vec![]);
+        browse_repo.set(None);
+        entries.set(vec![]);
+        open_file.set(None);
+        git_msg.set("Disconnected.".to_string());
+    });
+}
+
+fn commit_current(state: AppState) {
+    let Some((repo, path, sha)) = state.open_file.peek().clone() else {
+        return;
+    };
+    let message = web_sys::window()
+        .and_then(|w| w.prompt_with_message("Commit message:").ok().flatten())
+        .unwrap_or_default();
+    if message.trim().is_empty() {
+        return;
+    }
+    let content = state.code.peek().clone();
+    let mut git_msg = state.git_msg;
+    let mut open_file = state.open_file;
+    git_msg.set("Committing…".to_string());
+    let req = CommitRequest {
+        repo,
+        path,
+        content,
+        message,
+        sha: Some(sha),
+    };
+    spawn(async move {
+        match commit_file(&req).await {
+            Ok(new_sha) => {
+                open_file.set(Some((req.repo, req.path, new_sha)));
+                git_msg.set("✓ Committed.".to_string());
+            }
+            Err(e) => git_msg.set(format!("Commit failed: {e}")),
+        }
+    });
+}
+
+fn load_template_into_editor(state: AppState, id: String) {
+    let Some(t) = scaffold_templates().into_iter().find(|t| t.id == id) else {
+        return;
+    };
+    let Some(first) = t.files.first() else { return };
+    let mut code = state.code;
+    let mut filename = state.filename;
+    let mut open_file = state.open_file;
+    let mut git_msg = state.git_msg;
+    code.set(first.content.clone());
+    filename.set(first.path.clone());
+    open_file.set(None);
+    let names: Vec<String> = t.files.iter().map(|f| f.path.clone()).collect();
+    git_msg.set(format!(
+        "Loaded {} — {} files: {}",
+        t.name,
+        t.files.len(),
+        names.join(", ")
+    ));
+}
+
+fn create_scaffold_repo(state: AppState, template: String, repo_name: String) {
+    if repo_name.trim().is_empty() {
+        let mut git_msg = state.git_msg;
+        git_msg.set("Enter a repo name first.".to_string());
+        return;
+    }
+    let mut git_msg = state.git_msg;
+    git_msg.set("Creating repo…".to_string());
+    let req = ScaffoldToRepoRequest {
+        template,
+        repo_name,
+        private: false,
+    };
+    spawn(async move {
+        match scaffold_repo(&req).await {
+            Ok(url) => git_msg.set(format!("✓ Created: {url}")),
+            Err(e) => git_msg.set(format!("Failed: {e}")),
+        }
+    });
+}
+
+// ----- GitHub fetch helpers -----
+
+async fn fetch_gh_status() -> Option<GitHubStatus> {
+    let resp = Request::get("/api/github/status").send().await.ok()?;
+    if !resp.ok() {
+        return None;
+    }
+    resp.json::<GitHubStatus>().await.ok()
+}
+
+async fn fetch_repos() -> Result<Vec<RepoInfo>, String> {
+    let resp = Request::get("/api/github/repos")
+        .send()
+        .await
+        .map_err(|e| e.to_string())?;
+    if !resp.ok() {
+        return Err(api_err(resp).await);
+    }
+    resp.json::<Vec<RepoInfo>>().await.map_err(|e| e.to_string())
+}
+
+#[derive(serde::Deserialize)]
+struct ContentsResp {
+    #[allow(dead_code)]
+    kind: String,
+    #[serde(default)]
+    entries: Vec<RepoEntry>,
+    #[serde(default)]
+    file: Option<RepoFile>,
+}
+
+async fn fetch_contents(repo: &str, path: &str) -> Result<ContentsResp, String> {
+    let url = format!("/api/github/contents?repo={}&path={}", urlenc(repo), urlenc(path));
+    let resp = Request::get(&url).send().await.map_err(|e| e.to_string())?;
+    if !resp.ok() {
+        return Err(api_err(resp).await);
+    }
+    resp.json::<ContentsResp>().await.map_err(|e| e.to_string())
+}
+
+async fn commit_file(req: &CommitRequest) -> Result<String, String> {
+    let resp = Request::put("/api/github/commit")
+        .json(req)
+        .map_err(|e| e.to_string())?
+        .send()
+        .await
+        .map_err(|e| e.to_string())?;
+    if !resp.ok() {
+        return Err(api_err(resp).await);
+    }
+    let v: Value = resp.json().await.map_err(|e| e.to_string())?;
+    Ok(v["sha"].as_str().unwrap_or_default().to_string())
+}
+
+async fn scaffold_repo(req: &ScaffoldToRepoRequest) -> Result<String, String> {
+    let resp = Request::post("/api/scaffold/to-repo")
+        .json(req)
+        .map_err(|e| e.to_string())?
+        .send()
+        .await
+        .map_err(|e| e.to_string())?;
+    if !resp.ok() {
+        return Err(api_err(resp).await);
+    }
+    let v: Value = resp.json().await.map_err(|e| e.to_string())?;
+    Ok(v["html_url"].as_str().unwrap_or_default().to_string())
+}
+
+async fn api_err(resp: gloo_net::http::Response) -> String {
+    match resp.json::<Value>().await {
+        Ok(v) => v
+            .get("error")
+            .and_then(|e| e.as_str())
+            .unwrap_or("request failed")
+            .to_string(),
+        Err(_) => "request failed".to_string(),
+    }
+}
+
+fn urlenc(s: &str) -> String {
+    let mut o = String::new();
+    for b in s.bytes() {
+        match b {
+            b'A'..=b'Z' | b'a'..=b'z' | b'0'..=b'9' | b'-' | b'_' | b'.' | b'~' => o.push(b as char),
+            _ => o.push_str(&format!("%{b:02X}")),
+        }
+    }
+    o
 }
 
 #[component]

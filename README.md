@@ -20,6 +20,8 @@ proxies AI requests.
 - 📱 **Responsive** — a 3-column desktop layout that collapses to a touch-friendly tabbed layout (Agents · Editor · Terminal · AI) on phones.
 - 💻 **Real terminal** — a genuine shell session via a pseudo-terminal (`portable-pty`): PowerShell on Windows, your `$SHELL` (zsh/bash) on macOS & Linux, streamed to the browser over a WebSocket.
 - 🤖 **Multi-provider AI** — Ollama, Claude, and any OpenAI-compatible endpoint (OpenAI, OpenRouter, Groq, DeepSeek, Mistral, **OpenCode Zen**, LM Studio, …).
+- 🐙 **Git via GitHub OAuth** — connect your GitHub account, browse your repos, open files into the editor, and commit changes back — all in the browser (the OAuth secret + token stay server-side in Rust).
+- 🏗️ **Scaffolding** — generate starter projects (Rust CLI, static web, Node, Python) into the editor, or push a whole template to a brand-new GitHub repo.
 - 🚀 **AI agent launchers** — one-click buttons that start Claude Code, Codex, OpenCode, Gemini CLI, or Aider in the terminal.
 - ⚙️ **Settings** — manage providers (with presets), API keys, and custom command buttons; persisted in the browser's `localStorage`.
 - 📝 **Code editor** with a scratch buffer.
@@ -85,13 +87,50 @@ trunk serve
 
 ## Configuration
 
-| Variable    | Default                  | Meaning                                  |
-|-------------|--------------------------|------------------------------------------|
-| `TCK_ADDR`  | `127.0.0.1:3000`         | Address the server binds to              |
-| `TCK_DIST`  | `crates/tck-ui/dist`     | Directory of the built WASM bundle       |
+| Variable                   | Default              | Meaning                                        |
+|----------------------------|----------------------|------------------------------------------------|
+| `TCK_ADDR`                 | `127.0.0.1:3000`     | Address the server binds to                    |
+| `TCK_DIST`                 | `crates/tck-ui/dist` | Directory of the built WASM bundle             |
+| `TCK_GITHUB_CLIENT_ID`     | —                    | GitHub OAuth App client id (enables Git)       |
+| `TCK_GITHUB_CLIENT_SECRET` | —                    | GitHub OAuth App client secret                 |
+| `TCK_GITHUB_CALLBACK`      | derived from Host    | Override the OAuth callback URL (non-localhost)|
 
 Providers, API keys, and custom commands are configured in-app via **⚙ Settings**
 and stored in the browser.
+
+## Git & scaffolding (GitHub OAuth)
+
+The **Source Control** and **Scaffold** panels (left sidebar; the **🧰 Tools** tab
+on phones) connect to GitHub through an **OAuth App**. The client secret and your
+access token live only in the Rust server — the browser holds just an httpOnly
+session cookie.
+
+**One-time setup:**
+
+1. Create an OAuth App at **GitHub → Settings → Developer settings → OAuth Apps →
+   New OAuth App**:
+   - *Homepage URL:* `http://localhost:3000`
+   - *Authorization callback URL:* `http://localhost:3000/auth/github/callback`
+2. Copy the **Client ID** and generate a **Client secret**, then run the server with them:
+
+   ```bash
+   TCK_GITHUB_CLIENT_ID=<id> TCK_GITHUB_CLIENT_SECRET=<secret> cargo run -p tck-server --release
+   ```
+
+3. Open `http://127.0.0.1:3000`, click **🔗 Connect GitHub**, and authorize.
+
+**What you can do once connected:**
+
+- Browse your repositories and folders; click a file to open it in the editor.
+- Edit it and click **⬆ Commit** to push the change back (with a commit message).
+- **Scaffold** a template: *Load into editor*, or enter a name and *Create GitHub
+  repo* to push a whole starter project to a new repository.
+
+> Git requires the native server (it holds the OAuth secret), so it isn't
+> available on the static GitHub Pages deployment. Scaffold → *Load into editor*
+> works everywhere, since the templates are compiled into the WASM.
+> For a non-localhost deploy, register that origin's callback URL and set
+> `TCK_GITHUB_CALLBACK` (and use `https`).
 
 ## Platforms
 
