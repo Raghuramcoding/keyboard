@@ -197,10 +197,17 @@ async fn handle_pty(socket: WebSocket) {
         }
     };
 
-    // Launch the platform shell: PowerShell on Windows; on macOS/Linux honor the
-    // user's $SHELL (zsh by default on macOS), falling back to /bin/bash.
+    // Launch the platform shell: PowerShell on Windows (fallback to cmd.exe);
+    // on macOS/Linux honor the user's $SHELL (zsh by default on macOS), falling back to /bin/bash.
     let mut cmd = if cfg!(windows) {
-        CommandBuilder::new("powershell.exe")
+        // Try pwsh (PowerShell 7+) first, then powershell.exe, then cmd.exe as fallback.
+        if which::which("pwsh").is_ok() {
+            CommandBuilder::new("pwsh")
+        } else if which::which("powershell").is_ok() {
+            CommandBuilder::new("powershell.exe")
+        } else {
+            CommandBuilder::new("cmd.exe")
+        }
     } else {
         let shell = std::env::var("SHELL").unwrap_or_else(|_| "/bin/bash".to_string());
         CommandBuilder::new(shell)

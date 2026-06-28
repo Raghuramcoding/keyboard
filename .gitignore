@@ -24,3 +24,8 @@ Thumbs.db
 
 # Logs
 *.log
+
+# Design handoff files (already implemented in landing.rs and landing.css)
+Landing page and design system.zip
+landing/
+.thumbnail

@@ -1,7 +1,10 @@
 //! T.C.K — TalentCloud Keyboard
 //! A pure-Rust (Dioxus/WASM) AI coding environment that runs in the browser.
 
+mod landing;
+
 use dioxus::prelude::*;
+use landing::LandingPage;
 use futures_util::{SinkExt, StreamExt};
 use gloo_net::http::Request;
 use gloo_net::websocket::{futures::WebSocket, Message as WsMessage};
@@ -153,6 +156,28 @@ fn ws_url() -> String {
 
 #[component]
 fn App() -> Element {
+    let show_landing = check_show_landing();
+
+    if show_landing {
+        return rsx! {
+            LandingPage {}
+        };
+    }
+
+    rsx! { AppMain {} }
+}
+
+fn check_show_landing() -> bool {
+    if let Some(window) = web_sys::window() {
+        if let Ok(hash) = window.location().hash() {
+            return hash.is_empty() || hash == "#";
+        }
+    }
+    true
+}
+
+#[component]
+fn AppMain() -> Element {
     let settings = use_signal(load_settings);
     let code = use_signal(|| {
         "// Welcome to T.C.K — TalentCloud Keyboard\n// A pure-Rust AI coding environment running in your browser.\n\nfn main() {\n    println!(\"Hello from T.C.K!\");\n}\n"
