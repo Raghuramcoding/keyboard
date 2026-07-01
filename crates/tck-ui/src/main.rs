@@ -4,17 +4,18 @@
 mod landing;
 
 use dioxus::prelude::*;
-use landing::LandingPage;
 use futures_util::{SinkExt, StreamExt};
 use gloo_net::http::Request;
 use gloo_net::websocket::{futures::WebSocket, Message as WsMessage};
 use gloo_storage::{LocalStorage, Storage};
+use landing::LandingPage;
 use serde_json::{json, Value};
 use tck_core::{
     claude_models, known_agents, provider_presets, scaffold_templates, CommitRequest,
     CustomCommand, GenerateRequest, GenerateResponse, GitHubStatus, ProviderConfig, RepoEntry,
     RepoFile, RepoInfo, ScaffoldToRepoRequest, Settings,
 };
+use wasm_bindgen::JsCast;
 
 const SETTINGS_KEY: &str = "tck.settings";
 
@@ -156,9 +157,24 @@ fn ws_url() -> String {
 
 #[component]
 fn App() -> Element {
-    let show_landing = check_show_landing();
+    let mut show_landing = use_signal(check_show_landing);
 
-    if show_landing {
+    // A link from the landing page into the app only changes the URL hash
+    // (same document, no reload), so re-check on every `hashchange` rather
+    // than just once at mount.
+    use_effect(move || {
+        if let Some(window) = web_sys::window() {
+            let win = window.clone();
+            let closure = wasm_bindgen::closure::Closure::<dyn FnMut()>::new(move || {
+                show_landing.set(check_show_landing_in(&win));
+            });
+            let _ = window
+                .add_event_listener_with_callback("hashchange", closure.as_ref().unchecked_ref());
+            closure.forget();
+        }
+    });
+
+    if *show_landing.read() {
         return rsx! {
             LandingPage {}
         };
@@ -168,12 +184,16 @@ fn App() -> Element {
 }
 
 fn check_show_landing() -> bool {
-    if let Some(window) = web_sys::window() {
-        if let Ok(hash) = window.location().hash() {
-            return hash.is_empty() || hash == "#";
-        }
+    web_sys::window()
+        .map(|w| check_show_landing_in(&w))
+        .unwrap_or(true)
+}
+
+fn check_show_landing_in(window: &web_sys::Window) -> bool {
+    match window.location().hash() {
+        Ok(hash) => hash.is_empty() || hash == "#",
+        Err(_) => true,
     }
-    true
 }
 
 #[component]
@@ -551,9 +571,7 @@ fn ScaffoldPanel() -> Element {
     let state = use_context::<AppState>();
     let templates = scaffold_templates();
     let connected = state.gh.read().connected;
-    let mut sel = use_signal(|| {
-        templates.first().map(|t| t.id.clone()).unwrap_or_default()
-    });
+    let mut sel = use_signal(|| templates.first().map(|t| t.id.clone()).unwrap_or_default());
     let mut repo_name = use_signal(String::new);
 
     rsx! {
@@ -784,7 +802,9 @@ async fn fetch_repos() -> Result<Vec<RepoInfo>, String> {
     if !resp.ok() {
         return Err(api_err(resp).await);
     }
-    resp.json::<Vec<RepoInfo>>().await.map_err(|e| e.to_string())
+    resp.json::<Vec<RepoInfo>>()
+        .await
+        .map_err(|e| e.to_string())
 }
 
 #[derive(serde::Deserialize)]
@@ -798,7 +818,11 @@ struct ContentsResp {
 }
 
 async fn fetch_contents(repo: &str, path: &str) -> Result<ContentsResp, String> {
-    let url = format!("/api/github/contents?repo={}&path={}", urlenc(repo), urlenc(path));
+    let url = format!(
+        "/api/github/contents?repo={}&path={}",
+        urlenc(repo),
+        urlenc(path)
+    );
     let resp = Request::get(&url).send().await.map_err(|e| e.to_string())?;
     if !resp.ok() {
         return Err(api_err(resp).await);
@@ -849,7 +873,9 @@ fn urlenc(s: &str) -> String {
     let mut o = String::new();
     for b in s.bytes() {
         match b {
-            b'A'..=b'Z' | b'a'..=b'z' | b'0'..=b'9' | b'-' | b'_' | b'.' | b'~' => o.push(b as char),
+            b'A'..=b'Z' | b'a'..=b'z' | b'0'..=b'9' | b'-' | b'_' | b'.' | b'~' => {
+                o.push(b as char)
+            }
             _ => o.push_str(&format!("%{b:02X}")),
         }
     }
@@ -910,8 +936,14 @@ fn ChatPanel() -> Element {
         spawn(async move {
             let resp = call_generate(req, has_server).await;
             let msg = match (resp.response, resp.error) {
-                (Some(r), _) => ChatMsg { role: Role::Ai, text: r },
-                (_, Some(e)) => ChatMsg { role: Role::Err, text: e },
+                (Some(r), _) => ChatMsg {
+                    role: Role::Ai,
+                    text: r,
+                },
+                (_, Some(e)) => ChatMsg {
+                    role: Role::Err,
+                    text: e,
+                },
                 _ => ChatMsg {
                     role: Role::Err,
                     text: "Empty response from provider.".into(),
@@ -1008,12 +1040,13 @@ async fn call_generate(req: GenerateRequest, has_server: bool) -> GenerateRespon
         }
     };
     match built.send().await {
-        Ok(resp) => resp.json::<GenerateResponse>().await.unwrap_or_else(|e| {
-            GenerateResponse {
+        Ok(resp) => resp
+            .json::<GenerateResponse>()
+            .await
+            .unwrap_or_else(|e| GenerateResponse {
                 error: Some(format!("Bad response from server: {e}")),
                 ..Default::default()
-            }
-        }),
+            }),
         Err(e) => GenerateResponse {
             error: Some(format!(
                 "Cannot reach the T.C.K server: {e}. Start it with `cargo run -p tck-server`."
@@ -1062,9 +1095,15 @@ async fn direct_ollama(req: &GenerateRequest) -> Result<String, String> {
         .send()
         .await
         .map_err(|e| format!("Cannot reach Ollama: {e}"))?;
-    let v: Value = resp.json().await.map_err(|e| format!("Bad Ollama response: {e}"))?;
+    let v: Value = resp
+        .json()
+        .await
+        .map_err(|e| format!("Bad Ollama response: {e}"))?;
     if let Some(err) = v.get("error") {
-        return Err(format!("Ollama error: {}", err.as_str().unwrap_or("unknown")));
+        return Err(format!(
+            "Ollama error: {}",
+            err.as_str().unwrap_or("unknown")
+        ));
     }
     Ok(v["response"].as_str().unwrap_or_default().to_string())
 }
@@ -1088,17 +1127,26 @@ async fn direct_claude(req: &GenerateRequest) -> Result<String, String> {
         .send()
         .await
         .map_err(|e| format!("Cannot reach Claude API: {e}"))?;
-    let v: Value = resp.json().await.map_err(|e| format!("Bad Claude response: {e}"))?;
+    let v: Value = resp
+        .json()
+        .await
+        .map_err(|e| format!("Bad Claude response: {e}"))?;
     if let Some(err) = v.get("error") {
         return Err(format!("Claude error: {err}"));
     }
-    Ok(v["content"][0]["text"].as_str().unwrap_or_default().to_string())
+    Ok(v["content"][0]["text"]
+        .as_str()
+        .unwrap_or_default()
+        .to_string())
 }
 
 async fn direct_openai(req: &GenerateRequest) -> Result<String, String> {
     let base = req.base_url.clone().unwrap_or_default();
     if base.is_empty() {
-        return Err(format!("Provider \"{}\" has no base URL configured.", req.provider));
+        return Err(format!(
+            "Provider \"{}\" has no base URL configured.",
+            req.provider
+        ));
     }
     let url = format!("{}/chat/completions", base.trim_end_matches('/'));
     let mut messages = Vec::new();
@@ -1126,7 +1174,12 @@ async fn direct_openai(req: &GenerateRequest) -> Result<String, String> {
         .map_err(|e| e.to_string())?
         .send()
         .await
-        .map_err(|e| format!("{} request failed: Cannot connect to API: {e}", req.provider))?;
+        .map_err(|e| {
+            format!(
+                "{} request failed: Cannot connect to API: {e}",
+                req.provider
+            )
+        })?;
     let v: Value = resp
         .json()
         .await

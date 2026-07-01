@@ -39,7 +39,7 @@ fn LandingNav() -> Element {
                 a { href: "https://github.com/Raghuramcoding/keyboard", target: "_blank", class: "landing-nav-link",
                     "GitHub"
                 }
-                a { href: "https://raghuramcoding.github.io/keyboard/", target: "_blank", class: "tck-btn tck-btn--primary",
+                a { href: "https://raghuramcoding.github.io/keyboard/#app", class: "tck-btn tck-btn--primary",
                     "Launch the app "
                     span { "→" }
                 }
@@ -68,7 +68,7 @@ fn LandingHero() -> Element {
                         "T.C.K runs everything natively: a real shell, AI proxying, and a full editor—no cloud backend, no bloat. Pure Rust, compiled to WebAssembly and served from a lightweight axum server."
                     }
                     div { class: "hero-buttons",
-                        a { href: "https://raghuramcoding.github.io/keyboard/", target: "_blank", class: "tck-btn tck-btn--primary",
+                        a { href: "https://raghuramcoding.github.io/keyboard/#app", class: "tck-btn tck-btn--primary",
                             "Launch the app"
                         }
                         a { href: "https://github.com/Raghuramcoding/keyboard", target: "_blank", class: "tck-btn tck-btn--ghost",
@@ -218,7 +218,7 @@ fn SimpleAppPreviewSection() -> Element {
                 }
                 div { class: "app-cta",
                     div { class: "app-cta-buttons",
-                        a { href: "https://raghuramcoding.github.io/keyboard/", target: "_blank", class: "tck-btn tck-btn--aurora",
+                        a { href: "https://raghuramcoding.github.io/keyboard/#app", class: "tck-btn tck-btn--aurora",
                             "Launch the app"
                         }
                         a { href: "https://github.com/Raghuramcoding/keyboard", target: "_blank", class: "tck-btn tck-btn--ghost",
@@ -252,11 +252,16 @@ fn LandingFooter() -> Element {
                     div { class: "footer-brand-text",
                         div { class: "main", "T.C.K" }
                         div { class: "sub", "made entirely in Rust 🦀" }
+                        img {
+                            class: "footer-visitor-badge",
+                            src: "https://visitor-badge.laobi.icu/badge?page_id=raghuramcoding.keyboard&left_color=%23262b3a&right_color=%235b8def",
+                            alt: "unique visitor count",
+                        }
                     }
                 }
                 div { class: "footer-links",
                     a { href: "https://github.com/Raghuramcoding/keyboard", target: "_blank", "GitHub" }
-                    a { href: "https://raghuramcoding.github.io/keyboard/", target: "_blank", "Launch app" }
+                    a { href: "https://raghuramcoding.github.io/keyboard/#app", "Launch app" }
                     a { href: "https://github.com/Raghuramcoding/keyboard/blob/main/LICENSE", target: "_blank", "MIT License" }
                 }
                 div { class: "footer-legal",
