@@ -4,18 +4,14 @@
 [![Rust](https://img.shields.io/badge/built%20with-Rust-orange?logo=rust)](https://www.rust-lang.org)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
-**T.C.K (TalentCloud Keyboard)** is an AI-powered coding environment written
-**entirely in Rust** that runs **in your browser**. The UI compiles to
-WebAssembly (Dioxus); a small native server provides a real shell terminal and
-proxies AI requests.
-
-> Previously an Electron/TypeScript app, T.C.K has been fully rewritten in Rust —
-> no JavaScript or TypeScript source remains. The UI is Rust → WASM, the backend
-> is Rust (axum + tokio).
+**T.C.K (TalentCloud Keyboard)** is an AI-powered coding environment that runs
+**in your browser**. The UI compiles to WebAssembly (Dioxus); a native server
+provides a real shell terminal, and a TypeScript AI service (`tck-ai`) uses the
+Vercel AI SDK for unified provider access.
 
 ## Features
 
-- 🦀 **100% Rust** — `tck-ui` (Dioxus/WASM frontend), `tck-server` (axum backend), `tck-core` (shared types).
+- 🦀 **Rust core** — `tck-ui` (Dioxus/WASM frontend), `tck-server` (axum backend), `tck-core` (shared types). AI service (`tck-ai`) uses **TypeScript + Vercel AI SDK**.
 - 🌐 **Runs in the browser** — the entire editor UI is WebAssembly. Works on **Windows, macOS, Linux**, and **iPhone/iPad (iOS Safari)**.
 - 📱 **Responsive** — a 3-column desktop layout that collapses to a touch-friendly tabbed layout (Agents · Editor · Terminal · AI) on phones.
 - 💻 **Real terminal** — a genuine shell session via a pseudo-terminal (`portable-pty`): PowerShell on Windows, your `$SHELL` (zsh/bash) on macOS & Linux, streamed to the browser over a WebSocket.

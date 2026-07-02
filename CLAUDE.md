@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-**T.C.K (TalentCloud Keyboard)** is a 100% Rust AI-powered coding environment that runs in the browser. The UI compiles to WebAssembly (Dioxus); the backend is a native server (axum + tokio) that provides:
+**T.C.K (TalentCloud Keyboard)** is a Rust + TypeScript AI-powered coding environment that runs in the browser. The UI compiles to WebAssembly (Dioxus); the backend is a native server (axum + tokio) with a sidecar TypeScript AI service (`tck-ai`) using the Vercel AI SDK.
 
 - Real shell terminal via pseudo-terminal (`portable-pty`) over WebSocket
 - AI request proxying to multiple providers (Anthropic Claude, Ollama, OpenRouter, OpenAI-compatible endpoints)
@@ -15,22 +15,26 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Architecture
 
 ```
-Browser (WASM)              Server (Native Rust)
-┌──────────────────┐       ┌─────────────────────────┐
-│ tck-ui (Dioxus)  │◄─────►│ tck-server (axum)       │
-│ • Editor         │  /api │ • AI proxy              │
-│ • Terminal view  │  /ws  │ • PTY terminal bridge   │
-│ • Settings       │       │ • Static file serving   │
+Browser (WASM)              Server (Native Rust)           AI Service (TypeScript)
+┌──────────────────┐       ┌─────────────────────────┐    ┌──────────────────────┐
+│ tck-ui (Dioxus)  │◄─────►│ tck-server (axum)       │◄──►│ tck-ai (Hono)        │
+│ • Editor         │  /api │ • Static file serving   │    │ • Vercel AI SDK      │
+│ • Terminal view  │  /ws  │ • PTY terminal bridge   │    │ • models.dev catalog │
+│ • Settings       │       │ • GitHub OAuth          │    │ • Streaming SSE      │
+│ • AI Chat        │       │ • AI proxy (→ tck-ai)   │    └──────────────────────┘
 └──────────────────┘       └─────────────────────────┘
 ```
 
-### Crates
+**On GitHub Pages (static host):** The WASM UI calls AI providers directly from the browser (serverless mode). No terminal or tck-ai service available.
 
-| Crate | Target | Purpose |
+### Crates & Packages
+
+| Crate/Package | Target | Purpose |
 |-------|--------|---------|
 | `tck-core` | Both (native + WASM) | Shared serde types, provider presets, agent list |
 | `tck-ui` | `wasm32-unknown-unknown` | Dioxus UI compiled to WebAssembly |
 | `tck-server` | Native | axum HTTP server, WebSocket PTY bridge, AI proxy |
+| `tck-ai` | Node.js (TypeScript) | Vercel AI SDK unified provider access, models.dev model catalog |
 
 ## Prerequisites & Setup
 
@@ -43,12 +47,17 @@ Browser (WASM)              Server (Native Rust)
 ### Development (live reload)
 
 ```bash
-# Terminal 1: Run backend server (watches port 3000)
+# Terminal 1: Run tck-ai AI service (watches port 3002)
+cd tck-ai
+npm install
+npm run dev
+
+# Terminal 2: Run backend server (watches port 3000)
 cargo run -p tck-server
 # Backend serves static files from crates/tck-ui/dist by default
 # TCK_DIST=path overrides this
 
-# Terminal 2: Run UI with hot reload (proxies API calls to :3000)
+# Terminal 3: Run UI with hot reload (proxies API calls to :3000)
 cd crates/tck-ui
 trunk serve
 # Open http://127.0.0.1:8080 in browser
@@ -96,6 +105,16 @@ The project currently has minimal test coverage. No standard test targets define
 | `TCK_GITHUB_CLIENT_ID` | — | GitHub OAuth App ID (enables Git features) |
 | `TCK_GITHUB_CLIENT_SECRET` | — | GitHub OAuth App secret |
 | `TCK_GITHUB_CALLBACK` | Derived from Host header | OAuth callback URL override |
+| `TCK_AI_PORT` | `3002` | tck-ai service port (when running standalone) |
+| `TCK_AI_HOST` | `127.0.0.1` | tck-ai service bind address |
+| `TCK_AI_BASE` | `http://127.0.0.1:3002` | Override tck-ai base URL for the Rust proxy |
+| `ANTHROPIC_API_KEY` | — | Claude API key (tck-ai) |
+| `OPENAI_API_KEY` | — | OpenAI API key (tck-ai) |
+| `GOOGLE_GENERATIVE_AI_API_KEY` | — | Google/Gemini API key (tck-ai) |
+| `GROQ_API_KEY` | — | Groq API key (tck-ai) |
+| `MISTRAL_API_KEY` | — | Mistral API key (tck-ai) |
+| `DEEPSEEK_API_KEY` | — | DeepSeek API key (tck-ai) |
+| `XAI_API_KEY` | — | xAI/Grok API key (tck-ai) |
 
 ## Key File Locations
 
@@ -107,15 +126,20 @@ The project currently has minimal test coverage. No standard test targets define
 | `crates/tck-ui/assets/style.css` | Global styles |
 | `crates/tck-server/src/main.rs` | axum server, AI proxy, PTY bridge |
 | `deploy/` | Docker Compose, systemd, Caddy configs for production |
+| `tck-ai/` | TypeScript AI service: Vercel AI SDK + models.dev integration |
+| `tck-ai/src/generate.ts` | Vercel AI SDK wrapper (generateText) |
+| `tck-ai/src/models.ts` | models.dev catalog client |
+| `tck-ai/src/server.ts` | Hono HTTP server |
+| `tck-ai/src/browser.ts` | Browser bundle for GitHub Pages mode |
 | `.github/workflows/` | CI/CD (build on push to main, Pages deploy, releases) |
 
 ## Architecture Notes
 
-- **No JavaScript/TypeScript** — the entire codebase is Rust. UI logic lives in `tck-ui` (WASM target), OS/network access lives in `tck-server` (native).
+- **Primarily Rust** — core UI (WASM/Dioxus) and server (axum) are Rust. The `tck-ai` service is **TypeScript**, using the Vercel AI SDK for unified provider access. This is the only TypeScript in the project.
 - **Workspace strategy** — all three crates depend on shared types in `tck-core`. The UI crate has zero dependencies on the server; they communicate over HTTP/WebSocket.
 - **WASM bundle** — Trunk compiles `tck-ui` to a static bundle that the `tck-server` serves from `crates/tck-ui/dist` (configurable via `TCK_DIST`).
 - **Terminal over WebSocket** — the PTY session runs server-side; terminal I/O streams over a WebSocket to the browser (`portable-pty` crate).
-- **AI proxy** — the server forwards requests to providers (Claude, Ollama, etc.) and returns responses to the UI. GitHub Pages deployment bypasses the server, so AI calls go directly from the browser (requires CORS-compatible providers).
+- **AI proxy** — the server forwards requests through `tck-ai` (TypeScript, Vercel AI SDK) which provides unified access to all providers. On GitHub Pages, AI calls go directly from the browser (requires CORS-compatible providers). The model catalog is powered by models.dev.
 
 ## Known Platforms
 

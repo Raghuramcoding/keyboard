@@ -10,6 +10,12 @@ port = 8080
 backend = "http://127.0.0.1:3000/api"
 rewrite = "/api/"
 
+# In dev, /api/ai/ goes directly to tck-ai (port 3002).
+# In production, the Rust server proxies it.
+[[proxy]]
+backend = "http://127.0.0.1:3002/v1"
+rewrite = "/api/ai/"
+
 [[proxy]]
 backend = "ws://127.0.0.1:3000/ws"
 rewrite = "/ws/"

@@ -1,0 +1,34 @@
+{
+  "name": "tck-ai",
+  "version": "3.0.0",
+  "private": true,
+  "type": "module",
+  "description": "T.C.K AI service — Vercel AI SDK + models.dev unified API",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "start": "node dist/index.js",
+    "build": "tsc",
+    "build:browser": "esbuild src/browser.ts --bundle --minify --format=iife --global-name=TckAI --outfile=dist/tck-ai.js",
+    "clean": "rm -rf dist",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "ai": "^7.0.13",
+    "@ai-sdk/openai": "^4.0.6",
+    "@ai-sdk/anthropic": "^4.0.6",
+    "@ai-sdk/google": "^4.0.7",
+    "@ai-sdk/groq": "^4.0.4",
+    "@ai-sdk/mistral": "^4.0.4",
+    "@ai-sdk/deepseek": "^3.0.4",
+    "@ai-sdk/xai": "^4.0.5",
+    "@hono/node-server": "^2.0.8",
+    "hono": "^4.12.27",
+    "zod": "^3.24.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.14.0",
+    "esbuild": "^0.25.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.8.0"
+  }
+}

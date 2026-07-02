@@ -10,6 +10,7 @@ use gloo_net::http::Request;
 use gloo_net::websocket::{futures::WebSocket, Message as WsMessage};
 use gloo_storage::{LocalStorage, Storage};
 use landing::LandingPage;
+use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
 use tck_core::{
     agent_color, bucket_agent, claude_models, known_agents, provider_presets, scaffold_templates,
@@ -17,6 +18,19 @@ use tck_core::{
     GitHubStatus, ProviderConfig, RepoEntry, RepoFile, RepoInfo, ScaffoldToRepoRequest, Settings,
 };
 use wasm_bindgen::JsCast;
+
+/// A model from the models.dev catalog, returned by tck-ai.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+struct CatalogModel {
+    id: String,
+    provider: String,
+    name: String,
+    context_window: usize,
+    #[serde(default)]
+    supports_tools: bool,
+    #[serde(default)]
+    supports_streaming: bool,
+}
 
 const SETTINGS_KEY: &str = "tck.settings";
 
@@ -80,6 +94,8 @@ struct AppState {
     /// True once a native T.C.K server is detected (via /api/health). When false
     /// (e.g. served from GitHub Pages) AI calls go directly to the provider.
     server: Signal<bool>,
+    /// Model catalog fetched from models.dev via tck-ai.
+    model_catalog: Signal<Vec<CatalogModel>>,
     // ----- GitHub / source control -----
     gh: Signal<GitHubStatus>,
     repos: Signal<Vec<RepoInfo>>,
@@ -224,23 +240,40 @@ fn AppMain() -> Element {
     let mut term_lines = use_signal(String::new);
     let mut term_connected = use_signal(|| false);
     let token_usage = use_signal(Vec::<AgentTokenUsage>::new);
+    let model_catalog = use_signal(Vec::<CatalogModel>::new);
 
     // Detect a native T.C.K server. On a static host (GitHub Pages) this 404s and
     // we stay in "serverless" mode: AI calls go straight to the provider.
     let mut gh_w = gh;
     use_future(move || async move {
-        if let Ok(resp) = Request::get("/api/health").send().await {
+        let has_server = if let Ok(resp) = Request::get("/api/health").send().await {
             if resp.ok() {
                 if let Ok(t) = resp.text().await {
-                    if t.trim() == "ok" {
-                        server.set(true);
-                    }
+                    t.trim() == "ok"
+                } else {
+                    false
                 }
+            } else {
+                false
             }
-        }
+        } else {
+            false
+        };
+        server.set(has_server);
+
         // Also learn GitHub status (configured / already connected).
         if let Some(s) = fetch_gh_status().await {
             gh_w.set(s);
+        }
+    });
+
+    // Fetch model catalog from tck-ai (models.dev backed).
+    let mut mc = model_catalog;
+    use_future(move || async move {
+        if let Ok(resp) = Request::get("/api/ai/models").send().await {
+            if let Ok(models) = resp.json::<Vec<CatalogModel>>().await {
+                mc.set(models);
+            }
         }
     });
 
@@ -315,6 +348,7 @@ fn AppMain() -> Element {
         entries,
         open_file,
         git_msg,
+        model_catalog,
     });
 
     let view_class = state.mobile_tab.read().class();
@@ -381,7 +415,8 @@ fn TitleBar() -> Element {
     }
 
     let provider_now = state.provider.read().clone();
-    let suggestions = model_suggestions(&provider_now, &settings);
+    let catalog = state.model_catalog.read().clone();
+    let suggestions = model_suggestions(&provider_now, &settings, &catalog);
 
     rsx! {
         div { class: "titlebar",
@@ -420,8 +455,9 @@ fn TitleBar() -> Element {
     }
 }
 
-fn model_suggestions(provider: &str, settings: &Settings) -> Vec<String> {
-    match provider {
+fn model_suggestions(provider: &str, settings: &Settings, catalog: &[CatalogModel]) -> Vec<String> {
+    // First, collect static suggestions.
+    let mut suggestions: Vec<String> = match provider {
         "ollama" => ["llama3", "qwen2.5-coder", "deepseek-r1", "phi4"]
             .iter()
             .map(|s| s.to_string())
@@ -433,7 +469,16 @@ fn model_suggestions(provider: &str, settings: &Settings) -> Vec<String> {
             .find(|p| p.id == id)
             .map(|p| p.models.clone())
             .unwrap_or_default(),
+    };
+    // Then merge in models from the catalog that match this provider.
+    for cm in catalog.iter() {
+        if cm.provider == provider && !suggestions.contains(&cm.id) {
+            // Strip the "provider/" prefix from the SDK model id for display.
+            let display = cm.id.strip_prefix(&format!("{provider}/")).unwrap_or(&cm.id);
+            suggestions.push(display.to_string());
+        }
     }
+    suggestions
 }
 
 #[component]
@@ -1323,7 +1368,7 @@ async fn call_generate(req: GenerateRequest, has_server: bool) -> GenerateRespon
     if !has_server {
         return generate_direct(req).await;
     }
-    let built = match Request::post("/api/generate").json(&req) {
+    let built = match Request::post("/api/ai/generate").json(&req) {
         Ok(b) => b,
         Err(e) => {
             return GenerateResponse {

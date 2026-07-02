@@ -1,6 +1,6 @@
 # T.C.K — TalentCloud Keyboard
-# Pure-Rust workspace. The UI compiles to WebAssembly (browser); the server is
-# a native axum binary providing the AI proxy and the PTY terminal bridge.
+# Core crates (Rust): WASM UI (Dioxus), native server (axum).
+# AI service (tck-ai/) is TypeScript with the Vercel AI SDK.
 [workspace]
 resolver = "2"
 members = [

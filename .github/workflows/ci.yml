@@ -38,3 +38,14 @@ jobs:
 
       - name: Build native server
         run: cargo build -p tck-server --release
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: TypeScript check tck-ai
+        working-directory: tck-ai
+        run: |
+          npm install
+          npm run typecheck

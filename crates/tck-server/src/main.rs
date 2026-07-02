@@ -5,19 +5,26 @@
 //! local shell to the browser over a WebSocket using a pseudo-terminal.
 
 use axum::{
+    body::Body,
     extract::ws::{Message, WebSocket, WebSocketUpgrade},
-    response::IntoResponse,
+    http::StatusCode,
+    response::{IntoResponse, Response},
     routing::{get, post},
     Json, Router,
 };
 use futures_util::{SinkExt, StreamExt};
 use portable_pty::{native_pty_system, CommandBuilder, PtySize};
-use serde_json::{json, Value};
 use std::io::{Read, Write};
 use tck_core::{GenerateRequest, GenerateResponse};
 use tower_http::services::{ServeDir, ServeFile};
 
 mod github;
+
+/// Base URL of the tck-ai service (Vercel AI SDK + models.dev).
+/// Override with TCK_AI_BASE env var for different deployments.
+fn tck_ai_base() -> String {
+    std::env::var("TCK_AI_BASE").unwrap_or_else(|_| "http://127.0.0.1:3002".to_string())
+}
 
 #[tokio::main]
 async fn main() {
@@ -26,7 +33,13 @@ async fn main() {
     let static_service = ServeDir::new(&dist).fallback(ServeFile::new(index));
 
     let app = Router::new()
+        // Legacy single-shot generate (kept for backward compat — proxies to tck-ai).
         .route("/api/generate", post(generate))
+        // New Vercel AI SDK proxy to tck-ai.
+        .route("/api/ai/generate", post(proxy_ai_generate))
+        .route("/api/ai/models", get(proxy_ai_models))
+        .route("/api/ai/providers", get(proxy_ai_providers))
+        .route("/api/ai/health", get(proxy_ai_health))
         .route("/api/health", get(|| async { "ok" }))
         .route("/ws/pty", get(pty_ws))
         .merge(github::router())
@@ -42,19 +55,21 @@ async fn main() {
     axum::serve(listener, app).await.unwrap();
 }
 
-// ---------------- AI generation ----------------
+// ---------------- AI generation (proxied to tck-ai) ----------------
 
+/// HTTP client shared across proxy calls.
+fn client() -> reqwest::Client {
+    reqwest::Client::builder()
+        .build()
+        .expect("failed to build HTTP client")
+}
+
+/// Legacy /api/generate — kept for backward compat, proxies to tck-ai.
 async fn generate(Json(req): Json<GenerateRequest>) -> Json<GenerateResponse> {
-    let model = req.model.clone();
-    let result = match req.provider.as_str() {
-        "ollama" => gen_ollama(&req).await,
-        "claude" => gen_claude(&req).await,
-        _ => gen_openai_compatible(&req).await,
-    };
-    match result {
-        Ok(text) => Json(GenerateResponse {
-            response: Some(text),
-            model: Some(model),
+    match proxy_to_tck_ai("/v1/generate", &req).await {
+        Ok(resp) => Json(GenerateResponse {
+            response: Some(resp.response),
+            model: Some(resp.model),
             ..Default::default()
         }),
         Err(e) => Json(GenerateResponse {
@@ -64,112 +79,111 @@ async fn generate(Json(req): Json<GenerateRequest>) -> Json<GenerateResponse> {
     }
 }
 
-fn client() -> reqwest::Client {
-    reqwest::Client::builder()
-        .build()
-        .expect("failed to build HTTP client")
-}
-
-async fn gen_ollama(req: &GenerateRequest) -> Result<String, String> {
-    let host = req
-        .base_url
-        .clone()
-        .filter(|s| !s.is_empty())
-        .unwrap_or_else(|| "http://localhost:11434".to_string());
-    let url = format!("{}/api/generate", host.trim_end_matches('/'));
-    let body = json!({
+/// Proxy a GenerateRequest to tck-ai and return the parsed response.
+async fn proxy_to_tck_ai(path: &str, req: &GenerateRequest) -> Result<AIGenerateResponse, String> {
+    let base = tck_ai_base();
+    let url = format!("{base}{path}");
+    let body = serde_json::json!({
+        "provider": req.provider,
         "model": req.model,
         "prompt": req.prompt,
-        "system": req.system.clone().unwrap_or_default(),
-        "stream": false,
+        "system": req.system,
+        "apiKey": req.api_key,
+        "baseUrl": req.base_url,
+        "temperature": req.temperature,
+        "maxTokens": req.max_tokens,
     });
+
     let resp = client()
         .post(&url)
         .json(&body)
         .send()
         .await
-        .map_err(|e| format!("Cannot connect to Ollama ({host}). Is it running? {e}"))?;
-    let v: Value = resp
-        .json()
-        .await
-        .map_err(|e| format!("Bad Ollama response: {e}"))?;
-    if let Some(err) = v.get("error") {
-        return Err(format!("Ollama error: {}", err.as_str().unwrap_or("unknown")));
+        .map_err(|e| format!("Cannot reach tck-ai at {base}: {e}"))?;
+
+    if !resp.status().is_success() {
+        let err_body = resp.text().await.unwrap_or_default();
+        return Err(format!("tck-ai error ({path}): {err_body}"));
     }
-    Ok(v["response"].as_str().unwrap_or_default().to_string())
+
+    resp.json::<AIGenerateResponse>()
+        .await
+        .map_err(|e| format!("Bad response from tck-ai: {e}"))
 }
 
-async fn gen_claude(req: &GenerateRequest) -> Result<String, String> {
-    let key = req.api_key.clone().unwrap_or_default();
-    if key.is_empty() {
-        return Err("No Claude API key configured (set it in Settings).".to_string());
-    }
-    let body = json!({
-        "model": req.model,
-        "max_tokens": req.max_tokens.unwrap_or(2048),
-        "system": req.system.clone().unwrap_or_default(),
-        "messages": [{ "role": "user", "content": req.prompt }],
-    });
-    let resp = client()
-        .post("https://api.anthropic.com/v1/messages")
-        .header("x-api-key", key)
-        .header("anthropic-version", "2023-06-01")
-        .json(&body)
-        .send()
-        .await
-        .map_err(|e| format!("Cannot connect to Claude API: {e}"))?;
-    let v: Value = resp
-        .json()
-        .await
-        .map_err(|e| format!("Bad Claude response: {e}"))?;
-    if let Some(err) = v.get("error") {
-        return Err(format!("Claude error: {err}"));
-    }
-    Ok(v["content"][0]["text"].as_str().unwrap_or_default().to_string())
+/// Response shape from tck-ai's /v1/generate endpoint.
+#[derive(serde::Deserialize)]
+struct AIGenerateResponse {
+    response: String,
+    model: String,
 }
 
-async fn gen_openai_compatible(req: &GenerateRequest) -> Result<String, String> {
-    let base = req.base_url.clone().unwrap_or_default();
-    if base.is_empty() {
-        return Err(format!("Provider \"{}\" has no base URL configured.", req.provider));
-    }
-    let url = format!("{}/chat/completions", base.trim_end_matches('/'));
-    let mut messages = Vec::new();
-    if let Some(sys) = &req.system {
-        if !sys.is_empty() {
-            messages.push(json!({ "role": "system", "content": sys }));
-        }
-    }
-    messages.push(json!({ "role": "user", "content": req.prompt }));
-    let mut body = json!({ "model": req.model, "messages": messages });
-    if let Some(t) = req.temperature {
-        body["temperature"] = json!(t);
-    }
-    if let Some(m) = req.max_tokens {
-        body["max_tokens"] = json!(m);
-    }
-    let mut rb = client().post(&url);
-    if let Some(k) = &req.api_key {
-        if !k.is_empty() {
-            rb = rb.bearer_auth(k);
-        }
-    }
-    let resp = rb
-        .json(&body)
+/// POST /api/ai/generate — proxies to tck-ai /v1/generate.
+async fn proxy_ai_generate(Json(req): Json<serde_json::Value>) -> Response {
+    let base = tck_ai_base();
+    let url = format!("{base}/v1/generate");
+    let result = client()
+        .post(&url)
+        .json(&req)
         .send()
-        .await
-        .map_err(|e| format!("{} request failed: Cannot connect to API: {e}", req.provider))?;
-    let v: Value = resp
-        .json()
-        .await
-        .map_err(|e| format!("{} returned a non-JSON response: {e}", req.provider))?;
-    if let Some(err) = v.get("error") {
-        return Err(format!("{} error: {err}", req.provider));
+        .await;
+    match result {
+        Ok(resp) => {
+            let status = resp.status();
+            let body = resp.bytes().await.unwrap_or_default();
+            Response::builder()
+                .status(status)
+                .header("content-type", "application/json")
+                .body(Body::from(body))
+                .unwrap_or_default()
+        }
+        Err(e) => Response::builder()
+            .status(StatusCode::BAD_GATEWAY)
+            .header("content-type", "application/json")
+            .body(Body::from(format!(
+                r#"{{"error":"Cannot reach tck-ai: {e}"}}"#
+            )))
+            .unwrap_or_default(),
     }
-    Ok(v["choices"][0]["message"]["content"]
-        .as_str()
-        .unwrap_or_default()
-        .to_string())
+}
+
+/// GET /api/ai/models — proxies to tck-ai /v1/models.
+async fn proxy_ai_models() -> Response {
+    proxy_get("/v1/models").await
+}
+
+/// GET /api/ai/providers — proxies to tck-ai /v1/providers.
+async fn proxy_ai_providers() -> Response {
+    proxy_get("/v1/providers").await
+}
+
+/// GET /api/ai/health — proxies to tck-ai /v1/health.
+async fn proxy_ai_health() -> Response {
+    proxy_get("/v1/health").await
+}
+
+/// Generic GET proxy helper.
+async fn proxy_get(path: &str) -> Response {
+    let base = tck_ai_base();
+    let url = format!("{base}{path}");
+    match client().get(&url).send().await {
+        Ok(resp) => {
+            let status = resp.status();
+            let body = resp.bytes().await.unwrap_or_default();
+            Response::builder()
+                .status(status)
+                .header("content-type", "application/json")
+                .body(Body::from(body))
+                .unwrap_or_default()
+        }
+        Err(e) => Response::builder()
+            .status(StatusCode::BAD_GATEWAY)
+            .header("content-type", "application/json")
+            .body(Body::from(format!(
+                r#"{{"error":"Cannot reach tck-ai: {e}"}}"#
+            )))
+            .unwrap_or_default(),
+    }
 }
 
 // ---------------- Terminal (PTY over WebSocket) ----------------
