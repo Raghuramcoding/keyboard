@@ -42,6 +42,18 @@ jobs:
         with:
           version: latest
 
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Build tck-ai browser bundle
+        working-directory: tck-ai
+        run: |
+          npm ci
+          npm run build:browser
+          cp dist/tck-ai.js ../crates/tck-ui/assets/
+
       # Pages serves the repo at /<repo>/, so assets must be referenced there.
       - name: Build WASM UI
         working-directory: crates/tck-ui

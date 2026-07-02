@@ -195,6 +195,60 @@ const KNOWN_AGENTS_LIST: &[(&str, &str, &str, &str)] = &[
     ("aider", "Aider", "aider", "🛠"),
 ];
 
+// ===================== Multi-instance dashboard =====================
+
+/// What kind of session an instance represents.
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Default)]
+pub enum InstanceKind {
+    #[default]
+    Terminal,
+    Chat,
+}
+
+/// Whether an instance is alive, dead, or broken.
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Default)]
+pub enum InstanceStatus {
+    #[default]
+    Running,
+    Stopped,
+    Error,
+}
+
+/// Describes one running or saved instance to the UI.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
+pub struct InstanceInfo {
+    pub id: String,
+    pub kind: InstanceKind,
+    pub label: String,
+    #[serde(default)]
+    pub command: Option<String>,
+    #[serde(default)]
+    pub cwd: Option<String>,
+    pub status: InstanceStatus,
+    #[serde(default)]
+    pub error: Option<String>,
+    pub created_at: u64,
+}
+
+/// Payload for POST /api/instances.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CreateInstanceRequest {
+    pub kind: InstanceKind,
+    #[serde(default)]
+    pub label: Option<String>,
+    #[serde(default)]
+    pub command: Option<String>,
+    #[serde(default)]
+    pub cwd: Option<String>,
+}
+
+/// Payload for PATCH /api/instances/{id}.
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct UpdateInstanceRequest {
+    #[serde(default)]
+    pub label: Option<String>,
+}
+
 // ===================== Multi-agent orchestrator =====================
 
 /// A specialist role a worker agent can take in an orchestration run.

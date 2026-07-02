@@ -1,6 +1,7 @@
 //! T.C.K — TalentCloud Keyboard
 //! A pure-Rust (Dioxus/WASM) AI coding environment that runs in the browser.
 
+mod instance_dashboard;
 mod landing;
 mod orchestrator;
 
@@ -12,6 +13,7 @@ use gloo_storage::{LocalStorage, Storage};
 use landing::LandingPage;
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
+use instance_dashboard::{InstancePanel, InstanceSidebar};
 use tck_core::{
     agent_color, bucket_agent, claude_models, known_agents, provider_presets, scaffold_templates,
     usage_pct, AgentTokenUsage, CommitRequest, CustomCommand, GenerateRequest, GenerateResponse,
@@ -39,14 +41,14 @@ fn main() {
 }
 
 // ----- chat -----
-#[derive(Clone, PartialEq)]
+#[derive(Clone, PartialEq, Serialize, Deserialize)]
 enum Role {
     User,
     Ai,
     Err,
 }
 
-#[derive(Clone, PartialEq)]
+#[derive(Clone, PartialEq, Serialize, Deserialize)]
 struct ChatMsg {
     role: Role,
     text: String,
@@ -96,6 +98,10 @@ struct AppState {
     server: Signal<bool>,
     /// Model catalog fetched from models.dev via tck-ai.
     model_catalog: Signal<Vec<CatalogModel>>,
+    // ----- Multi-instance dashboard -----
+    view: Signal<instance_dashboard::AppView>,
+    instances: Signal<Vec<instance_dashboard::InstanceState>>,
+    active_id: Signal<Option<String>>,
     // ----- GitHub / source control -----
     gh: Signal<GitHubStatus>,
     repos: Signal<Vec<RepoInfo>>,
@@ -241,6 +247,16 @@ fn AppMain() -> Element {
     let mut term_connected = use_signal(|| false);
     let token_usage = use_signal(Vec::<AgentTokenUsage>::new);
     let model_catalog = use_signal(Vec::<CatalogModel>::new);
+    // ---- Multi-instance dashboard state ----
+    let view = use_signal(|| instance_dashboard::AppView::Dashboard);
+    let instances = use_signal(|| {
+        // Restore persisted instances from localStorage.
+        LocalStorage::get::<String>("tck.instances")
+            .ok()
+            .and_then(|s| serde_json::from_str::<Vec<instance_dashboard::InstanceState>>(&s).ok())
+            .unwrap_or_default()
+    });
+    let active_id = use_signal(|| Option::<String>::None);
 
     // Detect a native T.C.K server. On a static host (GitHub Pages) this 404s and
     // we stay in "serverless" mode: AI calls go straight to the provider.
@@ -349,20 +365,51 @@ fn AppMain() -> Element {
         open_file,
         git_msg,
         model_catalog,
+        view,
+        instances,
+        active_id,
+    });
+
+    // Persist instances to localStorage whenever they change.
+    let instances_w = state.instances;
+    use_effect(move || {
+        let data = instances_w.peek();
+        if let Ok(json) = serde_json::to_string(&*data) {
+            let _ = LocalStorage::set("tck.instances", &json);
+        }
     });
 
     let view_class = state.mobile_tab.read().class();
+    let current_view = *state.view.read();
 
     rsx! {
         div { class: "app",
             TitleBar {}
-            div { class: "body {view_class}",
-                Sidebar {}
-                div { class: "center",
-                    Editor {}
-                    TerminalPanel {}
-                }
-                RightPanel {}
+            TopNav { view: current_view }
+            match current_view {
+                instance_dashboard::AppView::Dashboard => rsx! {
+                    InstanceDashboard {}
+                },
+                instance_dashboard::AppView::Editor => rsx! {
+                    div { class: "body {view_class}",
+                        Sidebar {}
+                        div { class: "center",
+                            Editor {}
+                            TerminalPanel {}
+                        }
+                        RightPanel {}
+                    }
+                },
+                instance_dashboard::AppView::Orchestrator => rsx! {
+                    div { class: "body {view_class}",
+                        Sidebar {}
+                        div { class: "center",
+                            Editor {}
+                            TerminalPanel {}
+                        }
+                        RightPanel {}
+                    }
+                },
             }
             MobileTabBar {}
             if *state.show_settings.read() {
@@ -453,6 +500,248 @@ fn TitleBar() -> Element {
             }
         }
     }
+}
+
+// ---- Top view switcher ----
+
+#[component]
+fn TopNav(view: instance_dashboard::AppView) -> Element {
+    let mut state = use_context::<AppState>();
+    rsx! {
+        div { class: "topnav",
+            button {
+                class: if view == instance_dashboard::AppView::Dashboard { "topnav-btn active" } else { "topnav-btn" },
+                onclick: move |_| state.view.set(instance_dashboard::AppView::Dashboard),
+                "▦ Dashboard"
+            }
+            button {
+                class: if view == instance_dashboard::AppView::Editor { "topnav-btn active" } else { "topnav-btn" },
+                onclick: move |_| state.view.set(instance_dashboard::AppView::Editor),
+                "📝 Editor"
+            }
+            button {
+                class: if view == instance_dashboard::AppView::Orchestrator { "topnav-btn active" } else { "topnav-btn" },
+                onclick: move |_| state.view.set(instance_dashboard::AppView::Orchestrator),
+                "🎭 Orchestrator"
+            }
+        }
+    }
+}
+
+// ---- Instance Dashboard ----
+
+#[component]
+fn InstanceDashboard() -> Element {
+    let mut state = use_context::<AppState>();
+
+    // Fetch the instance list from the server on mount.
+    use_future(move || async move {
+        let list = instance_dashboard::fetch_instances().await;
+        let mut instances = state.instances;
+        let instates: Vec<instance_dashboard::InstanceState> = list
+            .into_iter()
+            .map(|info| instance_dashboard::InstanceState {
+                info,
+                term_lines: String::new(),
+                term_connected: false,
+                messages: Vec::new(),
+            })
+            .collect();
+        // Auto-select the first instance if none selected.
+        if !instates.is_empty() && state.active_id.peek().is_none() {
+            state.active_id.set(Some(instates[0].info.id.clone()));
+        }
+        instances.set(instates);
+    });
+
+    let instances_list = state.instances.read().clone();
+    let active = state.active_id.read().clone();
+    let selected = instances_list.iter().find(|s| Some(s.info.id.as_str()) == active.as_deref()).cloned();
+
+    rsx! {
+        div { class: "dashboard",
+            InstanceSidebar {
+                instances: instances_list.clone(),
+                active_id: active.clone(),
+                on_select: move |id| { state.active_id.set(Some(id)); },
+                on_create_terminal: move |cmd: String| {
+                    spawn(async move {
+                        let req = tck_core::CreateInstanceRequest {
+                            kind: tck_core::InstanceKind::Terminal,
+                            label: Some(cmd.clone()),
+                            command: Some(cmd.clone()),
+                            cwd: None,
+                        };
+                        if let Some(info) = instance_dashboard::create_instance(&req).await {
+                            let mut list = state.instances.peek().clone();
+                            list.push(instance_dashboard::InstanceState {
+                                info: info.clone(),
+                                term_lines: String::new(),
+                                term_connected: false,
+                                messages: Vec::new(),
+                            });
+                            state.instances.set(list);
+                            let id = info.id.clone();
+                            state.active_id.set(Some(id.clone()));
+                            // Connect WebSocket for terminal output.
+                            connect_instance_terminal(state, &id);
+                        }
+                    });
+                },
+                on_create_chat: move |_| {
+                    let id = format!("chat_{:016x}", rand_u64());
+                    let info = tck_core::InstanceInfo {
+                        id: id.clone(),
+                        kind: tck_core::InstanceKind::Chat,
+                        label: "AI Chat".into(),
+                        command: None,
+                        cwd: None,
+                        status: tck_core::InstanceStatus::Running,
+                        error: None,
+                        created_at: js_sys::Date::now() as u64,
+                    };
+                    let mut list = state.instances.peek().clone();
+                    list.push(instance_dashboard::InstanceState {
+                        info: info.clone(),
+                        term_lines: String::new(),
+                        term_connected: false,
+                        messages: Vec::new(),
+                    });
+                    state.instances.set(list);
+                    state.active_id.set(Some(id));
+                },
+                on_delete: move |id: String| {
+                    let id_c = id.clone();
+                    spawn(async move {
+                        instance_dashboard::delete_instance(&id_c).await;
+                        let mut list = state.instances.peek().clone();
+                        list.retain(|s| s.info.id != id_c);
+                        let new_active = if state.active_id.peek().as_deref() == Some(&id_c) {
+                            list.first().map(|s| s.info.id.clone())
+                        } else {
+                            state.active_id.peek().clone()
+                        };
+                        state.instances.set(list);
+                        state.active_id.set(new_active);
+                    });
+                },
+            }
+            InstancePanel {
+                instance: selected.clone(),
+                on_send: move |args: (String, String)| {
+                    send_to_instance(state, &args.0, &args.1);
+                },
+            }
+        }
+    }
+}
+
+fn connect_instance_terminal(mut state: AppState, id: &str) {
+    let id = id.to_string();
+    let ws_url = instance_dashboard::instance_ws_url(&id);
+
+    spawn(async move {
+        match WebSocket::open(&ws_url) {
+            Ok(ws) => {
+                let (_write, mut read) = ws.split();
+                let mut received = false;
+                while let Some(item) = read.next().await {
+                    let msg = match item {
+                        Ok(m) => m,
+                        Err(_) => break,
+                    };
+                    let text = match msg {
+                        WsMessage::Text(t) => t,
+                        WsMessage::Bytes(b) => String::from_utf8_lossy(&b).to_string(),
+                    };
+                    let sanitized = sanitize_terminal(&text);
+                    let mut list = state.instances.peek().clone();
+                    if let Some(inst) = list.iter_mut().find(|s| s.info.id == id) {
+                        if !received {
+                            received = true;
+                            inst.term_connected = true;
+                        }
+                        inst.term_lines.push_str(&sanitized);
+                        if inst.term_lines.len() > 120_000 {
+                            inst.term_lines = inst.term_lines.split_off(inst.term_lines.len() - 100_000);
+                        }
+                    }
+                    state.instances.set(list);
+                }
+                // Stream ended / disconnected.
+                let mut list = state.instances.peek().clone();
+                if let Some(inst) = list.iter_mut().find(|s| s.info.id == id) {
+                    inst.term_connected = false;
+                    if !received {
+                        inst.term_lines.push_str("[T.C.K] Terminal offline — cannot reach server.\n");
+                    }
+                }
+                state.instances.set(list);
+            }
+            Err(_) => {
+                let mut list = state.instances.peek().clone();
+                if let Some(inst) = list.iter_mut().find(|s| s.info.id == id) {
+                    inst.term_connected = false;
+                    inst.term_lines.push_str("[T.C.K] Failed to connect to terminal.\n");
+                }
+                state.instances.set(list);
+            }
+        }
+    });
+}
+
+fn send_to_instance(mut state: AppState, id: &str, text: &str) {
+    let id_str = id.to_string();
+    let text_str = text.to_string();
+    spawn(async move {
+        // Send input to terminal instance (if a server-side instance).
+        instance_dashboard::write_stdin(&id_str, &text_str).await;
+
+        let mut list = state.instances.peek().clone();
+        let kind = list.iter().find(|s| s.info.id == id_str).map(|s| s.info.kind);
+
+        if kind == Some(tck_core::InstanceKind::Terminal) {
+            // Terminal: just echo input locally.
+            if let Some(inst) = list.iter_mut().find(|s| s.info.id == id_str) {
+                inst.term_lines.push_str(&format!("$ {text_str}\n"));
+            }
+            state.instances.set(list);
+            return;
+        }
+
+        // Chat instance: push user message immediately.
+        if let Some(inst) = list.iter_mut().find(|s| s.info.id == id_str) {
+            inst.messages.push(ChatMsg {
+                role: Role::User,
+                text: text_str.clone(),
+            });
+        }
+        state.instances.set(list);
+
+        // Build and send AI generation request.
+        let req = build_request(&state, text_str);
+        let has_server = *state.server.peek();
+        let provider_id = state.provider.peek().clone();
+        let resp = call_generate(req, has_server).await;
+
+        let mut list2 = state.instances.peek().clone();
+        if let Some(inst) = list2.iter_mut().find(|s| s.info.id == id_str) {
+            let msg = match (resp.response, resp.error) {
+                (Some(r), _) => ChatMsg { role: Role::Ai, text: r },
+                (_, Some(e)) => ChatMsg { role: Role::Err, text: e },
+                _ => ChatMsg { role: Role::Err, text: "Empty response from provider.".into() },
+            };
+            let chars = msg.text.len();
+            inst.messages.push(msg);
+            state.instances.set(list2);
+            record_usage(state.token_usage, &provider_id, chars);
+        }
+    });
+}
+
+fn rand_u64() -> u64 {
+    let d = js_sys::Date::now();
+    ((d * 1_000_000.0) as u64) ^ (web_sys::window().map(|w| w.inner_width().unwrap_or_default().as_f64().unwrap_or(0.0) as u64).unwrap_or(0))
 }
 
 fn model_suggestions(provider: &str, settings: &Settings, catalog: &[CatalogModel]) -> Vec<String> {
@@ -1394,10 +1683,87 @@ async fn call_generate(req: GenerateRequest, has_server: bool) -> GenerateRespon
     }
 }
 
+use std::sync::OnceLock;
+use wasm_bindgen::JsValue;
+use wasm_bindgen_futures::JsFuture;
+
+// ---- Cached references to the global TckAI object so we only reflect once.
+struct TckAIBridge {
+    namespace: JsValue,
+    generate_fn: JsValue,
+}
+
+static TCKAI: OnceLock<Option<TckAIBridge>> = OnceLock::new();
+
+/// Try to initialise the TckAI bridge by finding `window.TckAI` and caching
+/// its `.generate` method.  Returns `None` if the bundle isn't loaded.
+fn init_tck_ai() -> Option<&'static TckAIBridge> {
+    TCKAI.get_or_init(|| {
+        let win = web_sys::window()?;
+        let ns = js_sys::Reflect::get(&win, &JsValue::from_str("TckAI")).ok()?;
+        if ns.is_undefined() || ns.is_null() { return None; }
+        let gen = js_sys::Reflect::get(&ns, &JsValue::from_str("generate")).ok()?;
+        Some(TckAIBridge { namespace: ns, generate_fn: gen })
+    }).as_ref()
+}
+
+/// Call `window.TckAI.generate(req)` via JS interop.
+/// Returns `None` if the TckAI bundle isn't loaded or the call fails.
+async fn generate_via_bridge(req: &GenerateRequest) -> Option<GenerateResponse> {
+    let bridge = init_tck_ai()?;
+
+    // Convert the Rust GenerateRequest to a plain JS object.
+    let js_req = js_sys::Object::new();
+    js_sys::Reflect::set(&js_req, &JsValue::from_str("provider"), &JsValue::from_str(&req.provider)).ok()?;
+    js_sys::Reflect::set(&js_req, &JsValue::from_str("model"), &JsValue::from_str(&req.model)).ok()?;
+    js_sys::Reflect::set(&js_req, &JsValue::from_str("prompt"), &JsValue::from_str(&req.prompt)).ok()?;
+    if let Some(sys) = &req.system {
+        js_sys::Reflect::set(&js_req, &JsValue::from_str("system"), &JsValue::from_str(sys)).ok()?;
+    }
+    if let Some(k) = &req.api_key {
+        js_sys::Reflect::set(&js_req, &JsValue::from_str("apiKey"), &JsValue::from_str(k)).ok()?;
+    }
+    if let Some(b) = &req.base_url {
+        js_sys::Reflect::set(&js_req, &JsValue::from_str("baseUrl"), &JsValue::from_str(b)).ok()?;
+    }
+    if let Some(t) = req.temperature {
+        js_sys::Reflect::set(&js_req, &JsValue::from_str("temperature"), &JsValue::from_f64(t as f64)).ok()?;
+    }
+    if let Some(m) = req.max_tokens {
+        js_sys::Reflect::set(&js_req, &JsValue::from_str("maxTokens"), &JsValue::from_f64(m as f64)).ok()?;
+    }
+
+    // Call TckAI.generate(js_req) and await the promise.
+    let gen_fn = bridge.generate_fn.dyn_ref::<js_sys::Function>()?;
+    let promise = gen_fn.call1(&bridge.namespace, &js_req).ok()?;
+    let promise = promise.dyn_into::<js_sys::Promise>().ok()?;
+    let result = JsFuture::from(promise).await.ok()?;
+
+    // Parse the result object back into a GenerateResponse.
+    let response = js_sys::Reflect::get(&result, &JsValue::from_str("response"))
+        .ok()?.as_string().unwrap_or_default();
+    let model = js_sys::Reflect::get(&result, &JsValue::from_str("model"))
+        .ok()?.as_string().unwrap_or_default();
+
+    Some(GenerateResponse {
+        response: Some(response),
+        model: Some(model),
+        ..Default::default()
+    })
+}
+
 /// Serverless mode: call the AI provider straight from the browser. Works for
 /// CORS-friendly providers (Anthropic with the browser-access header, OpenRouter,
 /// a local Ollama with `OLLAMA_ORIGINS=*`, etc.).
+///
+/// If the TckAI browser bundle (tck-ai.js) is loaded, it uses the Vercel AI SDK
+/// for unified provider access. Otherwise falls back to raw HTTP calls.
 async fn generate_direct(req: GenerateRequest) -> GenerateResponse {
+    // First try the TckAI browser bundle (Vercel AI SDK).
+    if let Some(resp) = generate_via_bridge(&req).await {
+        return resp;
+    }
+    // Fall back to direct HTTP calls.
     let result = match req.provider.as_str() {
         "ollama" => direct_ollama(&req).await,
         "claude" => direct_claude(&req).await,
