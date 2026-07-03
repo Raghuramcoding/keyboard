@@ -12,7 +12,6 @@ use std::sync::mpsc;
 use std::thread;
 use tao::event_loop::{ControlFlow, EventLoopBuilder};
 use tao::window::WindowBuilder;
-use url::Url;
 use wry::WebViewBuilder;
 
 /// Embedded WASM static assets (built by `trunk build` from `tck-ui`).
@@ -72,10 +71,9 @@ fn main() {
         .build(&event_loop)
         .expect("failed to create window");
 
-    let _webview = WebViewBuilder::new(&window)
+    let _webview = WebViewBuilder::new()
         .with_url(&url)
-        .expect("invalid URL")
-        .build()
+        .build(&window)
         .expect("failed to create webview");
 
     event_loop.run(move |event, _, control_flow| {
