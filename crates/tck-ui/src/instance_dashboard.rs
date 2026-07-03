@@ -124,6 +124,7 @@ fn InstanceItem(
     on_delete: EventHandler<String>,
 ) -> Element {
     let id = state.info.id.clone();
+    let id_key = id.clone();
     let delete_id = id.clone();
     let icon = instance_icon(&state.info);
     let status_text = match state.info.status {
@@ -134,7 +135,7 @@ fn InstanceItem(
     let active_class = if is_active { "active" } else { "" };
     rsx! {
         div {
-            key: "{id}",
+            key: "{id_key}",
             class: "instance-item {active_class}",
             onclick: move |_| on_select.call(id.clone()),
             div { class: "instance-item-icon", "{icon}" }
