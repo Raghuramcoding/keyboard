@@ -9,7 +9,7 @@ async fn main() {
     let dist = std::env::var("TCK_DIST").unwrap_or_else(|_| "crates/tck-ui/dist".to_string());
     let addr = std::env::var("TCK_ADDR").unwrap_or_else(|_| "127.0.0.1:3000".to_string());
 
-    tck_server::serve_on_addr(&addr, &dist)
+    let (_addr, _event_rx) = tck_server::serve_on_addr(&addr, &dist)
         .await
         .unwrap_or_else(|_| {
             eprintln!("T.C.K server failed to start");

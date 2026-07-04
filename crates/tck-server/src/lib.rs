@@ -5,6 +5,7 @@
 
 mod github;
 mod instances;
+mod persistence;
 
 use axum::{
     body::Body,
@@ -17,6 +18,7 @@ use axum::{
 use futures_util::{SinkExt, StreamExt};
 use instances::InstanceManager;
 use std::sync::Arc;
+use tokio::sync::mpsc;
 use tck_core::{CreateInstanceRequest, GenerateRequest, GenerateResponse, InstanceInfo, UpdateInstanceRequest};
 use tower_http::services::{ServeDir, ServeFile};
 
@@ -27,11 +29,11 @@ fn tck_ai_base() -> String {
 }
 
 /// Build and return the axum [`Router`] (with its [`InstanceManager`] inside).
-pub fn build_router(dist_dir: &str) -> (Router, Arc<InstanceManager>) {
+pub fn build_router(dist_dir: &str, event_tx: mpsc::UnboundedSender<String>) -> (Router, Arc<InstanceManager>) {
     let index = format!("{dist_dir}/index.html");
     let static_service = ServeDir::new(dist_dir).fallback(ServeFile::new(index));
 
-    let im: Arc<InstanceManager> = Arc::new(InstanceManager::new());
+    let im: Arc<InstanceManager> = Arc::new(InstanceManager::with_event_tx(Some(event_tx)));
 
     let app = Router::new()
         .route("/api/generate", post(generate))
@@ -44,7 +46,13 @@ pub fn build_router(dist_dir: &str) -> (Router, Arc<InstanceManager>) {
         .route("/api/instances", get(list_instances).post(create_instance))
         .route("/api/instances/{id}", get(get_instance).patch(update_instance).delete(delete_instance))
         .route("/api/instances/{id}/stdin", post(instance_stdin))
+        .route("/api/instances/{id}/resize", post(instance_resize))
         .route("/ws/pty/{id}", get(pty_ws_multi))
+        .route("/ws/events", get(ws_events))
+        // Desktop API
+        .route("/api/desktop/window-state", get(desktop_window_state_get).post(desktop_window_state_post))
+        .route("/api/desktop/sessions", get(desktop_sessions))
+        .route("/api/desktop/notify", post(desktop_notify))
         .with_state(im.clone())
         .merge(github::router())
         .fallback_service(static_service);
@@ -58,8 +66,15 @@ pub fn build_router(dist_dir: &str) -> (Router, Arc<InstanceManager>) {
 /// bound [`std::net::SocketAddr`] immediately (useful when `addr` includes
 /// port 0 for OS-assignment). The server runs until the tokio runtime shuts
 /// down.
-pub async fn serve_on_addr(addr: &str, dist_dir: &str) -> Result<std::net::SocketAddr, ()> {
-    let (app, _im) = build_router(dist_dir);
+///
+/// Also returns an mpsc receiver that yields instance-level events (agent
+/// state transitions, liveness) as JSON strings for the desktop app.
+pub async fn serve_on_addr(
+    addr: &str,
+    dist_dir: &str,
+) -> Result<(std::net::SocketAddr, mpsc::UnboundedReceiver<String>), ()> {
+    let (event_tx, event_rx) = mpsc::unbounded_channel::<String>();
+    let (app, _im) = build_router(dist_dir, event_tx);
 
     let listener = tokio::net::TcpListener::bind(addr)
         .await
@@ -78,7 +93,7 @@ pub async fn serve_on_addr(addr: &str, dist_dir: &str) -> Result<std::net::Socke
         }
     });
 
-    Ok(local_addr)
+    Ok((local_addr, event_rx))
 }
 
 // ---------------- AI generation (proxied to tck-ai) ----------------
@@ -214,6 +229,17 @@ async fn proxy_get(path: &str) -> Response {
 
 // ---------------- Multi-instance dashboard API ----------------
 
+/// Request body for POST /api/instances/{id}/resize
+#[derive(serde::Deserialize)]
+struct ResizeRequest {
+    rows: u16,
+    cols: u16,
+    #[serde(default)]
+    pixel_width: u16,
+    #[serde(default)]
+    pixel_height: u16,
+}
+
 async fn list_instances(State(im): State<Arc<InstanceManager>>) -> Json<Vec<InstanceInfo>> {
     Json(im.list())
 }
@@ -271,6 +297,17 @@ async fn instance_stdin(
 ) -> Response {
     let input = body.get("input").and_then(|v| v.as_str()).unwrap_or("");
     match im.write_stdin(&id, input) {
+        Ok(()) => Json(serde_json::json!({"ok": true})).into_response(),
+        Err(e) => (StatusCode::NOT_FOUND, Json(serde_json::json!({"error": e}))).into_response(),
+    }
+}
+
+async fn instance_resize(
+    State(im): State<Arc<InstanceManager>>,
+    Path(id): Path<String>,
+    Json(req): Json<ResizeRequest>,
+) -> Response {
+    match im.resize(&id, req.rows, req.cols, req.pixel_width, req.pixel_height) {
         Ok(()) => Json(serde_json::json!({"ok": true})).into_response(),
         Err(e) => (StatusCode::NOT_FOUND, Json(serde_json::json!({"error": e}))).into_response(),
     }
@@ -336,6 +373,28 @@ async fn handle_multi_pty(socket: WebSocket, im: Arc<InstanceManager>, id: Strin
     }
 
     send_task.abort();
+}
+
+// ---------------- Events WebSocket ----------------
+
+/// WS endpoint that streams instance-level events (agent state transitions,
+/// liveness) as JSON messages.
+async fn ws_events(
+    State(im): State<Arc<InstanceManager>>,
+    ws: WebSocketUpgrade,
+) -> Response {
+    ws.on_upgrade(move |socket| handle_ws_events(socket, im))
+}
+
+async fn handle_ws_events(socket: WebSocket, im: Arc<InstanceManager>) {
+    let (mut ws_tx, _ws_rx) = socket.split();
+    let mut rx = im.subscribe_events();
+
+    while let Ok(msg) = rx.recv().await {
+        if ws_tx.send(Message::Text(msg)).await.is_err() {
+            break;
+        }
+    }
 }
 
 // ---------------- Terminal (PTY over WebSocket) ----------------
@@ -431,4 +490,37 @@ async fn handle_pty(socket: WebSocket) {
 
     let _ = child.kill();
     send_task.abort();
+}
+
+// ---------------- Desktop API stubs ----------------
+
+/// GET /api/desktop/window-state — returns saved window geometry.
+async fn desktop_window_state_get() -> Json<serde_json::Value> {
+    Json(serde_json::json!({
+        "x": null,
+        "y": null,
+        "width": 1200,
+        "height": 800,
+        "maximized": false
+    }))
+}
+
+/// POST /api/desktop/window-state — persists window geometry.
+async fn desktop_window_state_post(Json(body): Json<serde_json::Value>) -> Json<serde_json::Value> {
+    // Persist window state via desktop API (to be implemented).
+    Json(serde_json::json!({"ok": true}))
+}
+
+/// GET /api/desktop/sessions — lists saved session files.
+async fn desktop_sessions() -> Json<Vec<serde_json::Value>> {
+    // Return saved sessions from persistence store (to be implemented).
+    Json(vec![])
+}
+
+/// POST /api/desktop/notify — shows a desktop notification.
+async fn desktop_notify(Json(body): Json<serde_json::Value>) -> Json<serde_json::Value> {
+    let _title = body.get("title").and_then(|v| v.as_str()).unwrap_or("T.C.K");
+    let _message = body.get("message").and_then(|v| v.as_str()).unwrap_or("");
+    // Forward to desktop notification system (to be implemented).
+    Json(serde_json::json!({"ok": true}))
 }

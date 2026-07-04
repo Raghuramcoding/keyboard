@@ -16,8 +16,9 @@ use serde_json::{json, Value};
 use instance_dashboard::{InstancePanel, InstanceSidebar};
 use tck_core::{
     agent_color, bucket_agent, claude_models, known_agents, provider_presets, scaffold_templates,
-    usage_pct, AgentTokenUsage, CommitRequest, CustomCommand, GenerateRequest, GenerateResponse,
-    GitHubStatus, ProviderConfig, RepoEntry, RepoFile, RepoInfo, ScaffoldToRepoRequest, Settings,
+    usage_pct, AgentTokenUsage, CommitRequest, CustomCommand, EventMessage, GenerateRequest,
+    GenerateResponse, GitHubStatus, ProviderConfig, RepoEntry, RepoFile, RepoInfo,
+    ScaffoldToRepoRequest, Settings,
 };
 use wasm_bindgen::JsCast;
 
@@ -54,28 +55,6 @@ struct ChatMsg {
     text: String,
 }
 
-// ----- mobile layout -----
-// On phones (narrow screens) only one panel is shown at a time, chosen by a
-// bottom tab bar. On wide screens all panels are visible and the tab bar hides.
-#[derive(Clone, Copy, PartialEq)]
-enum MobileTab {
-    Agents,
-    Editor,
-    Terminal,
-    Ai,
-}
-
-impl MobileTab {
-    fn class(self) -> &'static str {
-        match self {
-            MobileTab::Agents => "view-agents",
-            MobileTab::Editor => "view-editor",
-            MobileTab::Terminal => "view-terminal",
-            MobileTab::Ai => "view-ai",
-        }
-    }
-}
-
 // ----- shared state -----
 #[derive(Clone, Copy)]
 struct AppState {
@@ -90,7 +69,6 @@ struct AppState {
     term_lines: Signal<String>,
     term_connected: Signal<bool>,
     term: Coroutine<String>,
-    mobile_tab: Signal<MobileTab>,
     /// Token/character consumption per agent tool across the entire session.
     token_usage: Signal<Vec<AgentTokenUsage>>,
     /// True once a native T.C.K server is detected (via /api/health). When false
@@ -180,6 +158,14 @@ fn ws_url() -> String {
     format!("{proto}://{host}/ws/pty")
 }
 
+/// WebSocket URL for the instance-events stream (agent state transitions, etc.).
+fn events_ws_url() -> String {
+    let loc = web_sys::window().unwrap().location();
+    let proto = if loc.protocol().unwrap_or_default() == "https:" { "wss" } else { "ws" };
+    let host = loc.host().unwrap_or_else(|_| "127.0.0.1:8080".into());
+    format!("{proto}://{host}/ws/events")
+}
+
 #[component]
 fn App() -> Element {
     let mut show_landing = use_signal(check_show_landing);
@@ -234,7 +220,6 @@ fn AppMain() -> Element {
     let chat = use_signal(Vec::<ChatMsg>::new);
     let busy = use_signal(|| false);
     let show_settings = use_signal(|| false);
-    let mobile_tab = use_signal(|| MobileTab::Editor);
     let mut server = use_signal(|| false);
     let gh = use_signal(GitHubStatus::default);
     let repos = use_signal(Vec::<RepoInfo>::new);
@@ -354,7 +339,6 @@ fn AppMain() -> Element {
         term_lines,
         term_connected,
         term,
-        mobile_tab,
         token_usage,
         server,
         gh,
@@ -379,69 +363,73 @@ fn AppMain() -> Element {
         }
     });
 
-    let view_class = state.mobile_tab.read().class();
-    let current_view = *state.view.read();
+    // Subscribe to server-sent events (agent state transitions, liveness, etc.)
+    // via a persistent WebSocket that auto-reconnects on disconnect.
+    {
+        let instances = state.instances;
+        let server_signaled = state.server;
+        use_future(move || async move {
+            loop {
+                if !*server_signaled.peek() {
+                    gloo_timers::future::TimeoutFuture::new(1000).await;
+                    continue;
+                }
+                match WebSocket::open(&events_ws_url()) {
+                    Ok(ws) => {
+                        let (_write, mut read) = ws.split();
+                        while let Some(item) = read.next().await {
+                            match item {
+                                Ok(WsMessage::Text(text)) => {
+                                    if let Ok(event) = serde_json::from_str::<EventMessage>(&text) {
+                                        match event {
+                                            EventMessage::AgentStateChanged {
+                                                instance_id,
+                                                new_state,
+                                                ..
+                                            } => {
+                                                let mut list = instances.peek().clone();
+                                                if let Some(inst) =
+                                                    list.iter_mut().find(|s| s.info.id == instance_id)
+                                                {
+                                                    inst.agent_state = new_state;
+                                                    instances.set(list);
+                                                }
+                                            }
+                                            EventMessage::InstanceStatusChanged {
+                                                instance_id,
+                                                status,
+                                                ..
+                                            } => {
+                                                let mut list = instances.peek().clone();
+                                                if let Some(inst) =
+                                                    list.iter_mut().find(|s| s.info.id == instance_id)
+                                                {
+                                                    inst.info.status = status;
+                                                    instances.set(list);
+                                                }
+                                            }
+                                            _ => {}
+                                        }
+                                    }
+                                }
+                                Ok(WsMessage::Bytes(_)) => {}
+                                Err(_) => break,
+                            }
+                        }
+                    }
+                    Err(_) => {}
+                }
+                gloo_timers::future::TimeoutFuture::new(3000).await;
+            }
+        });
+    }
 
     rsx! {
         div { class: "app",
             TitleBar {}
-            TopNav { view: current_view }
-            match current_view {
-                instance_dashboard::AppView::Dashboard => rsx! {
-                    InstanceDashboard {}
-                },
-                instance_dashboard::AppView::Editor => rsx! {
-                    div { class: "body {view_class}",
-                        Sidebar {}
-                        div { class: "center",
-                            Editor {}
-                            TerminalPanel {}
-                        }
-                        RightPanel {}
-                    }
-                },
-                instance_dashboard::AppView::Orchestrator => rsx! {
-                    div { class: "body {view_class}",
-                        Sidebar {}
-                        div { class: "center",
-                            Editor {}
-                            TerminalPanel {}
-                        }
-                        RightPanel {}
-                    }
-                },
-            }
-            MobileTabBar {}
+            InstanceDashboard {}
             if *state.show_settings.read() {
                 SettingsModal {}
-            }
-        }
-    }
-}
-
-#[component]
-fn MobileTabBar() -> Element {
-    let mut state = use_context::<AppState>();
-    let active = *state.mobile_tab.read();
-    let tabs = [
-        (MobileTab::Agents, "🧰", "Tools"),
-        (MobileTab::Editor, "📝", "Editor"),
-        (MobileTab::Terminal, "💻", "Terminal"),
-        (MobileTab::Ai, "🤖", "AI"),
-    ];
-    rsx! {
-        div { class: "mobile-tabbar",
-            for (tab , icon , label) in tabs.iter() {
-                button {
-                    key: "{label}",
-                    class: if active == *tab { "mtab active" } else { "mtab" },
-                    onclick: {
-                        let t = *tab;
-                        move |_| state.mobile_tab.set(t)
-                    },
-                    span { class: "mtab-icon", "{icon}" }
-                    span { class: "mtab-label", "{label}" }
-                }
             }
         }
     }
@@ -502,32 +490,6 @@ fn TitleBar() -> Element {
     }
 }
 
-// ---- Top view switcher ----
-
-#[component]
-fn TopNav(view: instance_dashboard::AppView) -> Element {
-    let mut state = use_context::<AppState>();
-    rsx! {
-        div { class: "topnav",
-            button {
-                class: if view == instance_dashboard::AppView::Dashboard { "topnav-btn active" } else { "topnav-btn" },
-                onclick: move |_| state.view.set(instance_dashboard::AppView::Dashboard),
-                "▦ Dashboard"
-            }
-            button {
-                class: if view == instance_dashboard::AppView::Editor { "topnav-btn active" } else { "topnav-btn" },
-                onclick: move |_| state.view.set(instance_dashboard::AppView::Editor),
-                "📝 Editor"
-            }
-            button {
-                class: if view == instance_dashboard::AppView::Orchestrator { "topnav-btn active" } else { "topnav-btn" },
-                onclick: move |_| state.view.set(instance_dashboard::AppView::Orchestrator),
-                "🎭 Orchestrator"
-            }
-        }
-    }
-}
-
 // ---- Instance Dashboard ----
 
 #[component]
@@ -540,11 +502,15 @@ fn InstanceDashboard() -> Element {
         let mut instances = state.instances;
         let instates: Vec<instance_dashboard::InstanceState> = list
             .into_iter()
-            .map(|info| instance_dashboard::InstanceState {
-                info,
-                term_lines: String::new(),
-                term_connected: false,
-                messages: Vec::new(),
+            .map(|info| {
+                let agent_state = info.agent_state;
+                instance_dashboard::InstanceState {
+                    info,
+                    term_lines: String::new(),
+                    term_connected: false,
+                    messages: Vec::new(),
+                    agent_state,
+                }
             })
             .collect();
         // Auto-select the first instance if none selected.
@@ -574,11 +540,13 @@ fn InstanceDashboard() -> Element {
                         };
                         if let Some(info) = instance_dashboard::create_instance(&req).await {
                             let mut list = state.instances.peek().clone();
+                            let agent_state = info.agent_state;
                             list.push(instance_dashboard::InstanceState {
                                 info: info.clone(),
                                 term_lines: String::new(),
                                 term_connected: false,
                                 messages: Vec::new(),
+                                agent_state,
                             });
                             state.instances.set(list);
                             let id = info.id.clone();
@@ -601,11 +569,13 @@ fn InstanceDashboard() -> Element {
                         created_at: js_sys::Date::now() as u64,
                     };
                     let mut list = state.instances.peek().clone();
+                    let agent_state = info.agent_state;
                     list.push(instance_dashboard::InstanceState {
                         info: info.clone(),
                         term_lines: String::new(),
                         term_connected: false,
                         messages: Vec::new(),
+                        agent_state,
                     });
                     state.instances.set(list);
                     state.active_id.set(Some(id));

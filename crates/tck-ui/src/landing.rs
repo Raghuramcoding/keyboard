@@ -1,3 +1,9 @@
+//! T.C.K — TalentCloud Keyboard landing page.
+//!
+//! Marketing page for browser visitors (hosted on GitHub Pages).
+//! Provides a "Launch in Browser" link (web app) and a
+//! "Launch Desktop App" link that uses the tck:// custom protocol.
+
 use dioxus::prelude::*;
 
 #[component]
@@ -69,14 +75,14 @@ fn LandingHero() -> Element {
                     }
                     div { class: "hero-buttons",
                         a { href: "https://raghuramcoding.github.io/keyboard/#app", class: "tck-btn tck-btn--primary",
-                            "Launch the app"
+                            "🌐 Launch in Browser"
                         }
-                        a { href: "https://github.com/Raghuramcoding/keyboard", target: "_blank", class: "tck-btn tck-btn--ghost",
-                            "View on GitHub"
+                        a { href: "tck://launch", class: "tck-btn tck-btn--desktop",
+                            "🖥  Launch Desktop App"
                         }
                     }
                     div { class: "hero-note",
-                        "no install — it's all WebAssembly, promise."
+                        "or launch in the browser — no install needed."
                     }
                 }
                 div { class: "hero-right",
@@ -219,14 +225,13 @@ fn SimpleAppPreviewSection() -> Element {
                 div { class: "app-cta",
                     div { class: "app-cta-buttons",
                         a { href: "https://raghuramcoding.github.io/keyboard/#app", class: "tck-btn tck-btn--aurora",
-                            "Launch the app"
+                            "🌐 Launch in Browser"
                         }
-                        a { href: "https://github.com/Raghuramcoding/keyboard", target: "_blank", class: "tck-btn tck-btn--ghost",
-                            style: "color: var(--fg); border-color: var(--fg);",
-                            "View on GitHub"
+                        a { href: "tck://launch", class: "tck-btn tck-btn--desktop tck-btn--aurora-alt",
+                            "🖥  Launch Desktop App"
                         }
                     }
-                    p { class: "app-cta-caption", "free and open source mit" }
+                    p { class: "app-cta-caption", "free and open source mit · desktop app registers tck:// protocol" }
                 }
             }
         }
@@ -261,7 +266,8 @@ fn LandingFooter() -> Element {
                 }
                 div { class: "footer-links",
                     a { href: "https://github.com/Raghuramcoding/keyboard", target: "_blank", "GitHub" }
-                    a { href: "https://raghuramcoding.github.io/keyboard/#app", "Launch app" }
+                    a { href: "https://raghuramcoding.github.io/keyboard/#app", "Launch in Browser" }
+                    a { href: "tck://launch", "Launch Desktop App" }
                     a { href: "https://github.com/Raghuramcoding/keyboard/blob/main/LICENSE", target: "_blank", "MIT License" }
                 }
                 div { class: "footer-legal",

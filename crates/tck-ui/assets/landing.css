@@ -157,6 +157,27 @@ body {
 
 .tck-btn--aurora:hover { filter: brightness(1.08); }
 
+/* Desktop app launch button — sits next to the browser button */
+.tck-btn--desktop {
+  background: #1d2130;
+  color: #e8eaf0;
+  border: 1.5px solid #5b8def;
+  box-shadow: 0 8px 20px -8px rgba(91, 141, 239, 0.4);
+}
+
+.tck-btn--desktop:hover {
+  background: #242938;
+  filter: brightness(1.06);
+}
+
+.tck-btn--aurora-alt {
+  background: #242938;
+  color: #e8eaf0;
+  border-color: #5b8def;
+}
+
+.tck-btn--aurora-alt:hover { background: #2d3348; }
+
 /* ===========================================================================
    Cards
    =========================================================================== */

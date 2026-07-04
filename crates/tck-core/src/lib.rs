@@ -205,6 +205,39 @@ pub enum InstanceKind {
     Chat,
 }
 
+/// The current state of an agent (used for display in the dashboard).
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Default)]
+pub enum AgentState {
+    #[default]
+    Idle,
+    Working,
+    Done,
+    Blocked,
+    Error,
+}
+
+/// Return a hex color string for each agent state.
+pub fn agent_state_color(state: AgentState) -> &'static str {
+    match state {
+        AgentState::Idle => "#94a3b8",
+        AgentState::Working => "#22c55e",
+        AgentState::Done => "#3b82f6",
+        AgentState::Blocked => "#eab308",
+        AgentState::Error => "#ef4444",
+    }
+}
+
+/// Return a unicode symbol for each agent state.
+pub fn agent_state_icon(state: AgentState) -> &'static str {
+    match state {
+        AgentState::Idle => "○",
+        AgentState::Working => "◉",
+        AgentState::Done => "✓",
+        AgentState::Blocked => "⊘",
+        AgentState::Error => "✕",
+    }
+}
+
 /// Whether an instance is alive, dead, or broken.
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Default)]
 pub enum InstanceStatus {
@@ -228,6 +261,10 @@ pub struct InstanceInfo {
     #[serde(default)]
     pub error: Option<String>,
     pub created_at: u64,
+    #[serde(default)]
+    pub agent_state: AgentState,
+    #[serde(default)]
+    pub last_output_at: u64,
 }
 
 /// Payload for POST /api/instances.
@@ -622,6 +659,67 @@ pub fn scaffold_templates() -> Vec<ScaffoldTemplate> {
             ],
         },
     ]
+}
+
+// ===================== Session / window / events =====================
+
+/// Persistent metadata about a user's session (used for restore/recovery).
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct SessionMetadata {
+    pub version: u32,
+    pub app_version: String,
+    pub last_launch: u64,
+    pub last_term_lines: Vec<String>,
+    pub agent_state_history: Vec<(AgentState, u64, String)>,
+}
+
+/// Saved window geometry for the desktop application.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct WindowState {
+    pub x: i32,
+    pub y: i32,
+    pub width: u32,
+    pub height: u32,
+    pub maximized: bool,
+}
+
+impl Default for WindowState {
+    fn default() -> Self {
+        Self {
+            x: -1,
+            y: -1,
+            width: 1200,
+            height: 800,
+            maximized: false,
+        }
+    }
+}
+
+/// Events emitted by the backend to notify the UI (or other listeners) about
+/// agent/instance lifecycle changes.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(tag = "type", rename_all = "snake_case")]
+pub enum EventMessage {
+    AgentStateChanged {
+        instance_id: String,
+        old_state: AgentState,
+        new_state: AgentState,
+        hint: String,
+        timestamp: u64,
+    },
+    InstanceStatusChanged {
+        instance_id: String,
+        status: InstanceStatus,
+        timestamp: u64,
+    },
+    OutputActivity {
+        instance_id: String,
+        bytes_written: usize,
+        timestamp: u64,
+    },
+    Heartbeat {
+        timestamp: u64,
+    },
 }
 
 #[cfg(test)]

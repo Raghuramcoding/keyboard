@@ -5,7 +5,7 @@ use crate::ChatMsg;
 use dioxus::prelude::*;
 use gloo_net::http::Request;
 use serde::{Deserialize, Serialize};
-use tck_core::{CreateInstanceRequest, InstanceInfo, InstanceKind, InstanceStatus};
+use tck_core::{AgentState, CreateInstanceRequest, InstanceInfo, InstanceKind, InstanceStatus};
 
 /// Which top-level view is shown.
 #[derive(Clone, Copy, PartialEq)]
@@ -24,6 +24,8 @@ pub struct InstanceState {
     pub term_connected: bool,
     /// Chat messages (for chat instances).
     pub messages: Vec<ChatMsg>,
+    /// Current state of the AI agent running in this instance.
+    pub agent_state: AgentState,
 }
 
 // -----------------------------------------------------------------------
@@ -127,12 +129,9 @@ fn InstanceItem(
     let id_key = id.clone();
     let delete_id = id.clone();
     let icon = instance_icon(&state.info);
-    let status_text = match state.info.status {
-        InstanceStatus::Running => "● running",
-        InstanceStatus::Stopped => "○ stopped",
-        InstanceStatus::Error => "✕ error",
-    };
     let active_class = if is_active { "active" } else { "" };
+    let state_dot_class = agent_state_css_class(state.agent_state);
+    let state_label = agent_state_label(state.agent_state);
     rsx! {
         div {
             key: "{id_key}",
@@ -141,7 +140,10 @@ fn InstanceItem(
             div { class: "instance-item-icon", "{icon}" }
             div { class: "instance-item-body",
                 div { class: "instance-item-label", "{state.info.label}" }
-                div { class: "instance-item-status", "{status_text}" }
+                div { class: "instance-item-status",
+                    span { class: "instance-state-dot {state_dot_class}" }
+                    span { "{state_label}" }
+                }
             }
             button {
                 class: "instance-item-close",
@@ -188,6 +190,7 @@ pub fn InstancePanel(
                 term_lines: term_lines,
                 term_connected: term_connected,
                 running: status == InstanceStatus::Running,
+                agent_state: inst.agent_state,
                 on_send: move |text| on_send.call((id.clone(), text)),
             }
         },
@@ -210,9 +213,13 @@ fn TerminalPanelView(
     term_lines: String,
     term_connected: bool,
     running: bool,
+    agent_state: AgentState,
     on_send: EventHandler<String>,
 ) -> Element {
     let mut input = use_signal(String::new);
+    let badge_class = agent_state_css_class(agent_state);
+    let badge_icon = agent_state_icon(agent_state);
+    let badge_name = agent_state_label(agent_state);
 
     rsx! {
         div { class: "term-instance",
@@ -222,6 +229,7 @@ fn TerminalPanelView(
                     class: if term_connected { "term-badge online" } else { "term-badge offline" },
                     if term_connected { "● connected" } else { "○ disconnected" }
                 }
+                span { class: "agent-state-badge {badge_class}", "{badge_icon} {badge_name}" }
                 if !running {
                     span { class: "term-badge done", "⏻ finished" }
                 }
@@ -320,6 +328,39 @@ fn instance_icon(info: &InstanceInfo) -> &'static str {
                 _ => ">_",
             }
         }
+    }
+}
+
+/// Map an AgentState to a CSS class name for the state dot.
+fn agent_state_css_class(state: AgentState) -> &'static str {
+    match state {
+        AgentState::Idle => "idle",
+        AgentState::Working => "working",
+        AgentState::Done => "done",
+        AgentState::Blocked => "blocked",
+        AgentState::Error => "error",
+    }
+}
+
+/// Human-readable label for the agent state.
+fn agent_state_label(state: AgentState) -> &'static str {
+    match state {
+        AgentState::Idle => "idle",
+        AgentState::Working => "processing",
+        AgentState::Done => "completed",
+        AgentState::Blocked => "waiting",
+        AgentState::Error => "error",
+    }
+}
+
+/// Icon character for the agent state badge (used in TerminalPanelView).
+fn agent_state_icon(state: AgentState) -> &'static str {
+    match state {
+        AgentState::Idle => "○",
+        AgentState::Working => "◉",
+        AgentState::Done => "✓",
+        AgentState::Blocked => "◷",
+        AgentState::Error => "✕",
     }
 }
 

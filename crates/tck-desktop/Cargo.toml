@@ -10,6 +10,7 @@ name = "tck-desktop"
 path = "src/main.rs"
 
 [dependencies]
+libc = "0.2"
 tokio = { version = "1", features = ["full"] }
 tck-server = { path = "../tck-server" }
 tao = "0.30"
@@ -17,4 +18,7 @@ wry = "0.47"
 url = "2"
 rust-embed = "8"
 tempfile = "3"
+tray-icon = "0.24"
+dirs = "5"
+winreg = "0.52"
 
