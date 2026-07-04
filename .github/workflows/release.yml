@@ -64,10 +64,10 @@ jobs:
 
       - name: Stage desktop app (Windows only)
         if: matrix.os == 'windows-latest'
-        shell: bash
+        shell: pwsh
         run: |
-          cp target/release/tck-desktop.exe bundle/${{ matrix.asset }}/
-          cd bundle && zip -r tck-desktop-win64.zip ${{ matrix.asset }}/tck-desktop.exe
+          Copy-Item target/release/tck-desktop.exe bundle/${{ matrix.asset }}/
+          Compress-Archive -Path bundle/${{ matrix.asset }}/tck-desktop.exe -DestinationPath bundle/tck-desktop-win64.zip -Force
 
       - name: Publish to release
         uses: softprops/action-gh-release@v2
