@@ -1,0 +1,132 @@
+name: "CodeQL + Issue Summary"
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+  # Optional weekly safety-net scan even if nothing was pushed. Remove if not wanted.
+  schedule:
+    - cron: '0 6 * * 1'
+
+jobs:
+  analyze:
+    name: Analyze
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # JS/TS are analyzed together as one CodeQL language.
+          - language: javascript-typescript
+            build-mode: none
+          # Rust only supports build-mode: none (no autobuild/manual mode).
+          - language: rust
+            build-mode: none
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: ${{ matrix.language }}
+          build-mode: ${{ matrix.build-mode }}
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: "/language:${{ matrix.language }}"
+
+  summarize:
+    name: Create/Update Issue Summary
+    needs: analyze
+    # Only file/update the issue on pushes to main, not on every PR -
+    # PR findings already show as inline checks on the PR.
+    if: github.event_name == 'push' || github.event_name == 'schedule'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: read
+      issues: write
+
+    steps:
+      # Alerts can take a little while to be indexed after the analyze step
+      # finishes. This is a simple buffer; increase if you see empty summaries.
+      - name: Wait for alerts to be indexed
+        run: sleep 30
+
+      - name: Build summary issue
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const marker = '<!-- codeql-summary-issue -->';
+
+            const { data: alerts } = await github.rest.codeScanning.listAlertsForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+            });
+
+            const { data: issues } = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+              labels: 'codeql-summary',
+            });
+            const existing = issues.find(i => i.body && i.body.includes(marker));
+
+            if (alerts.length === 0) {
+              console.log('No open alerts.');
+              if (existing) {
+                await github.rest.issues.update({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: existing.number,
+                  body: `${marker}\n## CodeQL scan summary\n\nNo open alerts as of commit ${context.sha}. 🎉`,
+                });
+              }
+              return;
+            }
+
+            const bySeverity = {};
+            for (const a of alerts) {
+              const sev = a.rule.security_severity_level || a.rule.severity || 'unknown';
+              bySeverity[sev] = bySeverity[sev] || [];
+              bySeverity[sev].push(a);
+            }
+
+            let body = `${marker}\n## CodeQL scan summary\n\nCommit: ${context.sha}\nTotal open alerts: ${alerts.length}\n\n`;
+            for (const sev of Object.keys(bySeverity).sort()) {
+              body += `### ${sev} (${bySeverity[sev].length})\n`;
+              for (const a of bySeverity[sev]) {
+                const loc = a.most_recent_instance.location;
+                body += `- [${a.rule.description || a.rule.name}](${a.html_url}) — \`${loc.path}:${loc.start_line}\`\n`;
+              }
+              body += '\n';
+            }
+
+            if (existing) {
+              await github.rest.issues.update({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: existing.number,
+                body,
+              });
+              console.log(`Updated issue #${existing.number}`);
+            } else {
+              const created = await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title: 'CodeQL scan summary',
+                body,
+                labels: ['codeql-summary'],
+              });
+              console.log(`Created issue #${created.data.number}`);
+            }
