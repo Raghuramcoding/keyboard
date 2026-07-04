@@ -207,6 +207,8 @@ fn acquire_single_instance_lock() -> Result<(), String> {
 #[cfg(target_os = "windows")]
 fn process_is_alive(pid: u32) -> bool {
     // Type alias for raw handle pointer.
+    // This matches the Win32 HANDLE typedef and is used in the FFI declarations below.
+    #[allow(clippy::upper_case_acronyms)]
     type HANDLE = *mut std::ffi::c_void;
 
     const PROCESS_QUERY_LIMITED_INFORMATION: u32 = 0x1000u32;
@@ -261,8 +263,8 @@ fn show_duplicate_instance_dialog() {
     unsafe {
         MessageBoxA(
             std::ptr::null_mut(),
-            "T.C.K is already running.\n\0".as_ptr() as *const std::os::raw::c_char,
-            "T.C.K\0".as_ptr() as *const std::os::raw::c_char,
+            c"T.C.K is already running.\n".as_ptr(),
+            c"T.C.K".as_ptr(),
             0x00000040u32, // MB_OK | MB_ICONINFORMATION
         );
     }
