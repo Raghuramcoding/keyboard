@@ -366,7 +366,7 @@ fn AppMain() -> Element {
     // Subscribe to server-sent events (agent state transitions, liveness, etc.)
     // via a persistent WebSocket that auto-reconnects on disconnect.
     {
-        let instances = state.instances;
+        let mut instances = state.instances;
         let server_signaled = state.server;
         use_future(move || async move {
             loop {
@@ -567,15 +567,16 @@ fn InstanceDashboard() -> Element {
                         status: tck_core::InstanceStatus::Running,
                         error: None,
                         created_at: js_sys::Date::now() as u64,
+                        agent_state: tck_core::AgentState::default(),
+                        last_output_at: 0,
                     };
                     let mut list = state.instances.peek().clone();
-                    let agent_state = info.agent_state;
                     list.push(instance_dashboard::InstanceState {
-                        info: info.clone(),
+                        info,
                         term_lines: String::new(),
                         term_connected: false,
                         messages: Vec::new(),
-                        agent_state,
+                        agent_state: tck_core::AgentState::default(),
                     });
                     state.instances.set(list);
                     state.active_id.set(Some(id));

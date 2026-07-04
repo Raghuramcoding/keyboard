@@ -60,7 +60,7 @@ fn register_protocol_handler() {
         use winreg::enums::*;
         use winreg::RegKey;
 
-        let widen = |s: &str| -> Vec<u16> {
+        let _widen = |s: &str| -> Vec<u16> {
             OsStr::new(s)
                 .encode_wide()
                 .chain(std::iter::once(0))
@@ -296,9 +296,6 @@ fn focus_existing_window() {
                 lpdwProcessId: *mut u32,
             ) -> u32;
             fn SetForegroundWindow(hWnd: *mut std::ffi::c_void) -> i32;
-
-            static mut FOUND: *mut std::ffi::c_void = std::ptr::null_mut();
-            static mut TARGET_PID: u32 = 0;
         }
 
         // Read the lock file to get the PID of the running instance.
@@ -311,20 +308,28 @@ fn focus_existing_window() {
             return;
         }
 
+        static mut FOUND: *mut std::ffi::c_void = std::ptr::null_mut();
+        static mut TARGET_PID: u32 = 0;
+
+        // SAFETY: we hold a single-threaded lock (the second instance exits
+        // immediately after calling focus_existing_window), so these statics
+        // are accessed from at most one thread.
         unsafe {
             TARGET_PID = pid;
 
-            // SAFETY: EnumWindows callback is called synchronously within this
-            // call, so the static variables are safe here.
             extern "system" fn enum_proc(
                 hwnd: *mut std::ffi::c_void,
                 _lparam: *mut std::ffi::c_void,
             ) -> i32 {
                 let mut found_pid: u32 = 0;
-                GetWindowThreadProcessId(hwnd, &mut found_pid as *mut u32);
-                if found_pid == TARGET_PID {
-                    FOUND = hwnd;
-                    return 0; // Stop enumeration.
+                // SAFETY: EnumWindows is synchronous, so this callback runs
+                // in the same thread as the calling code.
+                unsafe {
+                    GetWindowThreadProcessId(hwnd, &mut found_pid as *mut u32);
+                    if found_pid == TARGET_PID {
+                        FOUND = hwnd;
+                        return 0; // Stop enumeration.
+                    }
                 }
                 1 // Continue.
             }
@@ -489,7 +494,7 @@ fn main() {
         let rt = tokio::runtime::Runtime::new().expect("failed to create tokio runtime");
         rt.block_on(async {
             match tck_server::serve_on_addr("127.0.0.1:0", &dist_dir).await {
-                Ok(addr) => {
+                Ok((addr, _event_rx)) => {
                     let _ = addr_tx.send(addr);
                 }
                 Err(_) => {
@@ -505,7 +510,8 @@ fn main() {
     });
 
     // 4. Wait for the server to be ready.
-    let server_addr = addr_rx.recv().expect("failed to get server address");
+    let server_addr: std::net::SocketAddr = addr_rx.recv().expect("failed to get server address");
+    let addr_str = server_addr.to_string();
     // Append #app so the UI skips the landing page inside the desktop app.
     let url = format!("http://{server_addr}/#app");
 
@@ -551,7 +557,7 @@ fn main() {
         .expect("failed to build tray icon");
 
     // 9. Main event loop.
-    let addr_for_save = server_addr.clone();
+    let addr_for_save: String = addr_str;
 
     // Clean up old sessions at startup (runs once).
     clean_old_sessions();

@@ -506,7 +506,7 @@ async fn desktop_window_state_get() -> Json<serde_json::Value> {
 }
 
 /// POST /api/desktop/window-state — persists window geometry.
-async fn desktop_window_state_post(Json(body): Json<serde_json::Value>) -> Json<serde_json::Value> {
+async fn desktop_window_state_post(Json(_body): Json<serde_json::Value>) -> Json<serde_json::Value> {
     // Persist window state via desktop API (to be implemented).
     Json(serde_json::json!({"ok": true}))
 }
