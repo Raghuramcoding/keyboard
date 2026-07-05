@@ -4219,7 +4219,7 @@ checksum = "61c41af27dd6d1e27b1b16b489db798443478cef1f06a660c96db617ba5de3b1"
 
 [[package]]
 name = "tck-core"
-version = "3.0.0"
+version = "3.1.0"
 dependencies = [
  "serde",
  "serde_json",
@@ -4227,7 +4227,7 @@ dependencies = [
 
 [[package]]
 name = "tck-desktop"
-version = "3.0.0"
+version = "3.1.0"
 dependencies = [
  "dirs 5.0.1",
  "libc",
@@ -4244,7 +4244,7 @@ dependencies = [
 
 [[package]]
 name = "tck-server"
-version = "3.0.0"
+version = "3.1.0"
 dependencies = [
  "axum",
  "axum-extra",
@@ -4266,7 +4266,7 @@ dependencies = [
 
 [[package]]
 name = "tck-ui"
-version = "3.0.0"
+version = "3.1.0"
 dependencies = [
  "dioxus",
  "futures-util",

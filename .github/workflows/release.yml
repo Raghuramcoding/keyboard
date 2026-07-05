@@ -67,6 +67,9 @@ jobs:
         shell: pwsh
         run: |
           Copy-Item target/release/tck-desktop.exe bundle/${{ matrix.asset }}/
+          # Clean up any WebView2 cache folder that may have been created by
+          # a previous local run in the bundle directory.
+          Remove-Item -Recurse -Force bundle/${{ matrix.asset }}/tck-desktop.exe.WebView2 -ErrorAction Ignore
           Compress-Archive -Path bundle/${{ matrix.asset }}/tck-desktop.exe -DestinationPath bundle/tck-desktop-win64.zip -Force
 
       - name: Publish to release

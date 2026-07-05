@@ -33,6 +33,17 @@ use wry::WebViewBuilder;
 struct Assets;
 
 // ---------------------------------------------------------------------------
+// Custom event type for the tao event loop (cross-thread signaling)
+// ---------------------------------------------------------------------------
+
+/// Events sent to the event loop from background threads.
+enum DesktopEvent {
+    /// Bring the main window to the front.  Sent by the protocol-handler
+    /// signaling thread when a second instance was launched via `tck://`.
+    FocusWindow,
+}
+
+// ---------------------------------------------------------------------------
 // Custom protocol handler registration (tck://)
 // ---------------------------------------------------------------------------
 
@@ -51,7 +62,11 @@ fn register_protocol_handler() {
         Ok(p) => p,
         Err(_) => return,
     };
-    let exe_path = exe.to_string_lossy().replace('\\', "/");
+    let exe_path = exe.to_string_lossy().to_string();
+    // Forward-slash variant for migration: earlier releases wrote forward
+    // slashes into the registry, so we check both to avoid re-registration.
+    #[cfg(target_os = "windows")]
+    let exe_path_fwd = exe_path.replace('\\', "/");
 
     #[cfg(target_os = "windows")]
     {
@@ -76,7 +91,7 @@ fn register_protocol_handler() {
                     if val == "URL:T.C.K Protocol" {
                         if let Ok(cmd_key) = key.open_subkey("shell\\open\\command") {
                             if let Ok(cmd) = cmd_key.get_value::<String, _>("") {
-                                if cmd.contains(&exe_path) {
+                                if cmd.contains(&exe_path) || cmd.contains(&exe_path_fwd) {
                                     return; // Already registered to this exe.
                                 }
                             }
@@ -280,6 +295,11 @@ fn show_duplicate_instance_dialog() {
 /// Called when a second instance is launched via `tck://` protocol.
 /// The first instance wrote its PID to the lock file — we can use that
 /// to find its window and focus it.
+///
+/// On Windows this attempts `SetForegroundWindow` (which may be denied by
+/// the OS) AND writes a trigger file that the first instance polls every
+/// 2 s, so the first instance can bring itself to front without permission
+/// issues.
 fn focus_existing_window() {
     #[cfg(target_os = "windows")]
     {
@@ -298,7 +318,9 @@ fn focus_existing_window() {
                 lpdwProcessId: *mut u32,
             ) -> u32;
             fn SetForegroundWindow(hWnd: *mut std::ffi::c_void) -> i32;
+            fn ShowWindow(hWnd: *mut std::ffi::c_void, nCmdShow: i32) -> i32;
         }
+        const SW_RESTORE: i32 = 9;
 
         // Read the lock file to get the PID of the running instance.
         let lock_path = std::env::temp_dir().join("tck-desktop.lock");
@@ -338,6 +360,9 @@ fn focus_existing_window() {
 
             let _ = EnumWindows(Some(enum_proc), std::ptr::null_mut());
             if !FOUND.is_null() {
+                // Restore the window first (un-minimize + make visible),
+                // then try to set it as the foreground window.
+                ShowWindow(FOUND, SW_RESTORE);
                 SetForegroundWindow(FOUND);
             }
         }
@@ -347,6 +372,14 @@ fn focus_existing_window() {
     {
         // On non-Windows platforms we simply exit — the user can alt-tab.
     }
+
+    // --- Fallback: signal the first instance via a trigger file ---
+    //
+    // Windows often denies SetForegroundWindow to a freshly-launched
+    // process.  The trigger file is polled by a background thread in the
+    // first instance, which can reliably set its own window as foreground.
+    let trigger = std::env::temp_dir().join("tck-desktop.focus");
+    let _ = fs::write(&trigger, "1");
 }
 
 // ---------------------------------------------------------------------------
@@ -489,7 +522,39 @@ fn main() {
     let _tmp = extract_assets();
     let dist_dir = _tmp.path().to_str().unwrap().to_string();
 
-    // 3. Start the tokio runtime + server on a background thread.
+    // 3. Build the event loop (typed so we can route custom events).
+    let event_loop = EventLoopBuilder::<DesktopEvent>::new().build();
+    let proxy = event_loop.create_proxy();
+
+    // 4. Background thread: poll for focus trigger file (written by a second
+    //    instance launched via tck:// protocol) + periodically allow any
+    //    process to set foreground (Windows).
+    thread::spawn(move || {
+        let trigger = std::env::temp_dir().join("tck-desktop.focus");
+        loop {
+            if trigger.exists() {
+                let _ = fs::remove_file(&trigger);
+                let _ = proxy.send_event(DesktopEvent::FocusWindow);
+            }
+
+            #[cfg(target_os = "windows")]
+            // SAFETY: AllowSetForegroundWindow with ASFW_ANY is safe to
+            // call from any thread — it just sets a per-process flag.
+            unsafe {
+                extern "system" {
+                    fn AllowSetForegroundWindow(dwProcessId: u32) -> i32;
+                }
+                // ASFW_ANY = -1 as u32 → any process can bring our window
+                // to the foreground, fixing SetForegroundWindow denial for
+                // second instances launched via tck:// protocol.
+                AllowSetForegroundWindow(-1i32 as u32);
+            }
+
+            thread::sleep(Duration::from_secs(2));
+        }
+    });
+
+    // 5. Start the tokio runtime + server on a background thread.
     //    Bind to port 0 so the OS assigns a free port.
     let (addr_tx, addr_rx) = mpsc::channel();
     thread::spawn(move || {
@@ -511,24 +576,19 @@ fn main() {
         });
     });
 
-    // 4. Wait for the server to be ready.
+    // 6. Wait for the server to be ready.
     let server_addr: std::net::SocketAddr = addr_rx.recv().expect("failed to get server address");
     let addr_str = server_addr.to_string();
     // Append #app so the UI skips the landing page inside the desktop app.
     let url = format!("http://{server_addr}/#app");
 
-    // 5. Build the event loop.
-    let event_loop = EventLoopBuilder::new().build();
-
-    // 6. Create the main window.
+    // 7. Create the main window and webview.
     let window = WindowBuilder::new()
         .with_title("T.C.K - Multi-Instance Terminal Manager")
         .with_inner_size(tao::dpi::LogicalSize::new(1200.0, 800.0))
         .build(&event_loop)
         .expect("failed to create window");
 
-    // 7. Create the webview.  (WebView does not hold a Rust borrow on
-    //    `window` after construction, so both can be used independently.)
     let _webview = WebViewBuilder::new()
         .with_url(&url)
         .build(&window)
@@ -566,6 +626,12 @@ fn main() {
 
     event_loop.run(move |event, _, control_flow| {
         *control_flow = ControlFlow::Wait;
+
+        // ── User events (from protocol-handler signaling thread) ──
+        if let tao::event::Event::UserEvent(DesktopEvent::FocusWindow) = &event {
+            window.set_visible(true);
+            window.focus();
+        }
 
         // ── Window events ──────────────────────────────────────────────
         if let tao::event::Event::WindowEvent {
