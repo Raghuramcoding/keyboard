@@ -1,0 +1,45 @@
+# Xcode
+.DS_Store
+.xcodeproj/
+.xcworkspace/
+xcUserData/
+DerivedData/
+*.pbxuser
+*.mode1v3
+*.mode2v3
+*.perspectivev3
+*.xcworkspace/xcshareddata/
+.swiftpm/
+.build/
+
+# Swift Package Manager
+.swiftpm/xcode/package.xcworkspace/xcshareddata/
+
+# Compiled binaries
+.o
+.a
+.so
+.dylib
+*.deb
+
+# CocoaPods
+Pods/
+Podfile.lock
+
+# Carthage
+Carthage/Build/
+
+# Environment
+.env
+.env.local
+
+# IDE
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+.AppleDouble
+.LSOverride
