@@ -107,7 +107,7 @@ export async function generate(
   const result = await generateText({
     model: providerClient(sdkModelString(provider, model)),
     prompt,
-    system: system, // v7 uses `system` as top-level option
+    system, // v7 uses `system` as top-level option
     ...(temperature !== undefined ? { temperature } : {}),
     ...(maxTokens !== undefined ? { maxTokens } : {}),
   });

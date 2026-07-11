@@ -49,12 +49,8 @@ pub fn build_router(dist_dir: &str, event_tx: mpsc::UnboundedSender<String>) -> 
         .route("/api/instances/{id}/resize", post(instance_resize))
         .route("/ws/pty/{id}", get(pty_ws_multi))
         .route("/ws/events", get(ws_events))
-        // Desktop API
-        .route("/api/desktop/window-state", get(desktop_window_state_get).post(desktop_window_state_post))
-        .route("/api/desktop/sessions", get(desktop_sessions))
-        .route("/api/desktop/notify", post(desktop_notify))
-        .with_state(im.clone())
         .merge(github::router())
+        .with_state(im.clone())
         .fallback_service(static_service);
 
     (app, im)
@@ -98,7 +94,7 @@ pub async fn serve_on_addr(
 
 // ---------------- AI generation (proxied to tck-ai) ----------------
 
-/// HTTP client shared across proxy calls.
+/// Shared HTTP client for proxy calls.
 fn client() -> reqwest::Client {
     reqwest::Client::builder()
         .build()
@@ -181,9 +177,7 @@ async fn proxy_ai_generate(Json(req): Json<serde_json::Value>) -> Response {
         Err(e) => Response::builder()
             .status(StatusCode::BAD_GATEWAY)
             .header("content-type", "application/json")
-            .body(Body::from(format!(
-                r#"{{"error":"Cannot reach tck-ai: {e}"}}"#
-            )))
+            .body(Body::from(format!(r#"{{"error":"Cannot reach tck-ai: {e}"}}"#)))
             .unwrap_or_default(),
     }
 }
@@ -220,9 +214,7 @@ async fn proxy_get(path: &str) -> Response {
         Err(e) => Response::builder()
             .status(StatusCode::BAD_GATEWAY)
             .header("content-type", "application/json")
-            .body(Body::from(format!(
-                r#"{{"error":"Cannot reach tck-ai: {e}"}}"#
-            )))
+            .body(Body::from(format!(r#"{{"error":"Cannot reach tck-ai: {e}"}}"#)))
             .unwrap_or_default(),
     }
 }
@@ -490,37 +482,4 @@ async fn handle_pty(socket: WebSocket) {
 
     let _ = child.kill();
     send_task.abort();
-}
-
-// ---------------- Desktop API stubs ----------------
-
-/// GET /api/desktop/window-state — returns saved window geometry.
-async fn desktop_window_state_get() -> Json<serde_json::Value> {
-    Json(serde_json::json!({
-        "x": null,
-        "y": null,
-        "width": 1200,
-        "height": 800,
-        "maximized": false
-    }))
-}
-
-/// POST /api/desktop/window-state — persists window geometry.
-async fn desktop_window_state_post(Json(_body): Json<serde_json::Value>) -> Json<serde_json::Value> {
-    // Persist window state via desktop API (to be implemented).
-    Json(serde_json::json!({"ok": true}))
-}
-
-/// GET /api/desktop/sessions — lists saved session files.
-async fn desktop_sessions() -> Json<Vec<serde_json::Value>> {
-    // Return saved sessions from persistence store (to be implemented).
-    Json(vec![])
-}
-
-/// POST /api/desktop/notify — shows a desktop notification.
-async fn desktop_notify(Json(body): Json<serde_json::Value>) -> Json<serde_json::Value> {
-    let _title = body.get("title").and_then(|v| v.as_str()).unwrap_or("T.C.K");
-    let _message = body.get("message").and_then(|v| v.as_str()).unwrap_or("");
-    // Forward to desktop notification system (to be implemented).
-    Json(serde_json::json!({"ok": true}))
 }

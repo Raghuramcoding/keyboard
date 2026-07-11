@@ -4269,6 +4269,7 @@ name = "tck-ui"
 version = "3.1.0"
 dependencies = [
  "dioxus",
+ "futures-channel",
  "futures-util",
  "gloo-net",
  "gloo-storage",

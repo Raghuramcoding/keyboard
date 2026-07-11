@@ -3,7 +3,8 @@
 //! results. Everything runs through `call_generate`, so it works both against a
 //! native T.C.K server and fully in-browser on a static host.
 
-use crate::{build_request_sys, call_generate, record_usage, AppState};
+use crate::{build_request, call_generate};
+use crate::state::{AppState, record_usage};
 use dioxus::prelude::*;
 use futures_util::future::join_all;
 use tck_core::{
@@ -39,11 +40,11 @@ struct TaskCard {
 pub fn OrchestratorPanel() -> Element {
     let state = use_context::<AppState>();
     let mut goal = use_signal(String::new);
-    let cards = use_signal(Vec::<TaskCard>::new);
-    let phase = use_signal(|| Phase::Idle);
-    let planner_out = use_signal(String::new);
-    let final_out = use_signal(String::new);
-    let error = use_signal(String::new);
+    let mut cards = use_signal(Vec::<TaskCard>::new);
+    let mut phase = use_signal(|| Phase::Idle);
+    let mut planner_out = use_signal(String::new);
+    let mut final_out = use_signal(String::new);
+    let mut error = use_signal(String::new);
 
     let ph = *phase.read();
     let running = matches!(ph, Phase::Planning | Phase::Working | Phase::Synthesizing);
@@ -76,7 +77,7 @@ pub fn OrchestratorPanel() -> Element {
                 div { class: "orch-phase", "🧭 Planner is decomposing the goal…" }
             }
             div { class: "orch-cards",
-                for (i , c) in cards_now.iter().enumerate() {
+                for (i, c) in cards_now.iter().enumerate() {
                     div {
                         key: "{i}",
                         class: "orch-card",
@@ -199,7 +200,7 @@ fn AgentActivity(
 
     rsx! {
         div { class: "orch-viz",
-            for (id , name , icon , chars , busy , what) in agents.into_iter() {
+            for (id, name, icon, chars, busy, what) in agents.into_iter() {
                 div { key: "{id}", class: "orch-agent", title: "{name}: {what}",
                     div {
                         class: if busy { "orch-sphere busy" } else { "orch-sphere" },
@@ -241,9 +242,9 @@ fn run_orchestration(
     error.set(String::new());
     phase.set(Phase::Planning);
 
-    spawn(async move {
+    crate::spawn(async move {
         // ---- 1. Plan ----
-        let req = build_request_sys(&state, planner_prompt(&goal), planner_system());
+        let req = build_request(&state, planner_prompt(&goal), Some(planner_system()));
         let resp = call_generate(req, has_server).await;
         let plan = match (resp.response, resp.error) {
             (Some(text), _) => {
@@ -287,7 +288,7 @@ fn run_orchestration(
             let token_usage = usage_w;
             async move {
                 let role = role_by_id(&task.role);
-                let req = build_request_sys(&state, worker_prompt(&goal, &task), role.system_prompt);
+                let req = build_request(&state, worker_prompt(&goal, &task), Some(role.system_prompt));
                 let resp = call_generate(req, has_server).await;
                 let (status, output) = match (resp.response, resp.error) {
                     (Some(text), _) => {
@@ -325,7 +326,7 @@ fn run_orchestration(
 
         // ---- 3. Synthesize ----
         phase.set(Phase::Synthesizing);
-        let req = build_request_sys(&state, synthesizer_prompt(&goal, &ok), synthesizer_system());
+        let req = build_request(&state, synthesizer_prompt(&goal, &ok), Some(synthesizer_system()));
         let resp = call_generate(req, has_server).await;
         match (resp.response, resp.error) {
             (Some(text), _) => {

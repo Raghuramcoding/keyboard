@@ -5,6 +5,60 @@
 
 use serde::{Deserialize, Serialize};
 
+/// A known AI coding agent we can auto-detect and launch in the terminal.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub struct Agent {
+    pub id: String,
+    pub label: String,
+    pub command: String,
+    pub icon: String,
+}
+
+/// A role in the orchestrator system.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub struct AgentRole {
+    pub id: String,
+    pub name: String,
+    pub icon: String,
+    pub system_prompt: String,
+}
+
+/// A planned task in an orchestration run.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
+pub struct PlannedTask {
+    pub role: String,
+    pub title: String,
+    pub instructions: String,
+}
+
+/// Chat message role.
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq)]
+pub enum Role {
+    User,
+    Ai,
+    Err,
+}
+
+/// A chat message.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub struct ChatMsg {
+    pub role: Role,
+    pub text: String,
+}
+
+/// A model from the models.dev catalog.
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct CatalogModel {
+    pub id: String,
+    pub provider: String,
+    pub name: String,
+    pub context_window: usize,
+    #[serde(default)]
+    pub supports_tools: bool,
+    #[serde(default)]
+    pub supports_streaming: bool,
+}
+
 /// An OpenAI-compatible AI provider the user has configured.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
 pub struct ProviderConfig {
@@ -70,15 +124,6 @@ pub struct GenerateResponse {
     pub error: Option<String>,
     #[serde(default)]
     pub model: Option<String>,
-}
-
-/// A known AI coding agent we can auto-detect and launch in the terminal.
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
-pub struct Agent {
-    pub id: String,
-    pub label: String,
-    pub command: String,
-    pub icon: String,
 }
 
 /// The agents T.C.K knows how to launch.
@@ -162,6 +207,7 @@ pub fn agent_color(id: &str) -> &'static str {
         "reviewer" => "#ef4444",
         "writer" => "#eab308",
         "synthesizer" => "#f97316",
+        "ponytail" => "#6b7280",
         _ => "#94a3b8",
     }
 }
@@ -177,6 +223,7 @@ pub fn bucket_agent(role_id: &str) -> (&'static str, &'static str) {
         "reviewer" => ("reviewer", "🧐"),
         "writer" => ("writer", "✍️"),
         "synthesizer" => ("synthesizer", "🧵"),
+        "ponytail" => ("ponytail", "🐴"),
         "claude" | "Claude Code" => ("claude", "⚡"),
         "codex" | "Codex" => ("codex", "🧩"),
         "opencode" | "OpenCode" => ("opencode", "📟"),
@@ -288,15 +335,6 @@ pub struct UpdateInstanceRequest {
 
 // ===================== Multi-agent orchestrator =====================
 
-/// A specialist role a worker agent can take in an orchestration run.
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
-pub struct AgentRole {
-    pub id: String,
-    pub name: String,
-    pub icon: String,
-    pub system_prompt: String,
-}
-
 /// The worker roles the planner can assign subtasks to.
 pub fn orchestrator_roles() -> Vec<AgentRole> {
     [
@@ -342,6 +380,52 @@ pub fn orchestrator_roles() -> Vec<AgentRole> {
              documentation, explanations, or user-facing text — for your assigned \
              subtask. Be accurate and concise.",
         ),
+        (
+            "synthesizer",
+            "Synthesizer",
+            "🧵",
+            "You are the Synthesizer agent in a multi-agent team. Merge the outputs \
+             of specialist agents into one coherent final answer.",
+        ),
+        (
+            "ponytail",
+            "Ponytail",
+            "🐴",
+            "You are the Ponytail agent — a lazy senior dev who has seen every \
+             over-engineered codebase and been paged at 3am for one. Apply the \
+             Ponytail Ladder ruthlessly:\n\n\
+             1. **YAGNI** — Does this need to exist at all? Speculative need = skip it.\n\
+             2. **Reuse** — Already in this codebase? A helper, util, type, or pattern \
+                a few files over? Reuse it. Re-implementing what exists is the most \
+                common slop.\n\
+             3. **Stdlib** — Does the standard library do it? Use it.\n\
+             4. **Native** — Native platform feature covers it? `<input type=\"date\">` \
+                over a picker lib, CSS over JS, DB constraint over app code.\n\
+             5. **Installed dep** — Already-installed dependency solves it? Use it. \
+                Never add a new one for what a few lines can do.\n\
+             6. **One line** — Can it be one line? One line.\n\
+             7. **Only then** — The minimum code that works.\n\n\
+             Rules:\n\
+             - No unrequested abstractions: no interface with one implementation, no \
+               factory for one product, no config for a value that never changes.\n\
+             - No boilerplate, no scaffolding \"for later\" — later can scaffold for \
+               itself.\n\
+             - Deletion over addition. Boring over clever — clever is what someone \
+               decodes at 3am.\n\
+             - Fewest files possible. Shortest working diff wins.\n\
+             - Complex request? Ship the lazy version and question it: \"Did X; Y \
+               covers it. Need full X? Say so.\"\n\
+             - Two stdlib options, same size? Take the one correct on edge cases.\n\
+             - Mark deliberate simplifications with `ponytail:` comment: \
+               `// ponytail: global lock, per-account locks if throughput matters`.\n\
+             - Bug fix = root cause, not symptom. One guard in the shared function \
+               beats a guard in every caller.\n\n\
+             Output ONLY the minimal solution. Then add at most three short lines:\n\
+             `skipped: [X], add when [Y].`\n\n\
+             Never simplify away: input validation at trust boundaries, error handling \
+             that prevents data loss, security measures, accessibility basics, anything \
+             explicitly requested.",
+        ),
     ]
     .into_iter()
     .map(|(id, name, icon, system_prompt)| AgentRole {
@@ -366,14 +450,6 @@ pub fn role_by_id(id: &str) -> AgentRole {
                             your assigned subtask thoroughly and output your result."
                 .to_string(),
         })
-}
-
-/// One subtask produced by the planner agent.
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
-pub struct PlannedTask {
-    pub role: String,
-    pub title: String,
-    pub instructions: String,
 }
 
 /// Maximum number of worker tasks a plan may contain.

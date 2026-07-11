@@ -38,7 +38,7 @@ struct Assets;
 
 /// Events sent to the event loop from background threads.
 enum DesktopEvent {
-    /// Bring the main window to the front.  Sent by the protocol-handler
+    /// Bring the main window to the front. Sent by the protocol-handler
     /// signaling thread when a second instance was launched via `tck://`.
     FocusWindow,
 }
@@ -51,7 +51,7 @@ enum DesktopEvent {
 /// `tck://launch` in the browser opens this desktop app.
 ///
 /// On **Windows** this writes to the current-user registry hive under
-/// `HKCU\Software\Classes\tck`.  On **macOS** the app bundle's
+/// `HKCU\Software\Classes\tck`. On **macOS** the app bundle's
 /// `Info.plist` would need `CFBundleURLSchemes`; on **Linux** a
 /// `.desktop` file with `MimeType=x-scheme-handler/tck`.
 ///
@@ -151,7 +151,7 @@ fn register_protocol_handler() {
     #[cfg(target_os = "macos")]
     {
         // macOS registration happens via CFBundleURLSchemes in Info.plist,
-        // not at runtime.  Log a reminder for distribution packaging.
+        // not at runtime. Log a reminder for distribution packaging.
         #[cfg(debug_assertions)]
         eprintln!(
             "T.C.K: macOS — embed CFBundleURLSchemes in Info.plist for tck:// support."
@@ -193,7 +193,7 @@ fn register_protocol_handler() {
 // ---------------------------------------------------------------------------
 
 /// Try to acquire a single-instance lock by writing our PID to
-/// `%TEMP%/tck-desktop.lock`.  If the lock exists and the owning process is
+/// `%TEMP%/tck-desktop.lock`. If the lock exists and the owning process is
 /// still alive, returns `Err`.
 fn acquire_single_instance_lock() -> Result<(), String> {
     let lock_path = std::env::temp_dir().join("tck-desktop.lock");
@@ -222,7 +222,6 @@ fn acquire_single_instance_lock() -> Result<(), String> {
 #[cfg(target_os = "windows")]
 fn process_is_alive(pid: u32) -> bool {
     // Type alias for raw handle pointer.
-    // This matches the Win32 HANDLE typedef and is used in the FFI declarations below.
     #[allow(clippy::upper_case_acronyms)]
     type HANDLE = *mut std::ffi::c_void;
 
@@ -376,7 +375,7 @@ fn focus_existing_window() {
     // --- Fallback: signal the first instance via a trigger file ---
     //
     // Windows often denies SetForegroundWindow to a freshly-launched
-    // process.  The trigger file is polled by a background thread in the
+    // process. The trigger file is polled by a background thread in the
     // first instance, which can reliably set its own window as foreground.
     let trigger = std::env::temp_dir().join("tck-desktop.focus");
     let _ = fs::write(&trigger, "1");
@@ -386,7 +385,7 @@ fn focus_existing_window() {
 // System tray
 // ---------------------------------------------------------------------------
 
-/// Build a 32x32 RGBA blue circle fallback tray icon.  Returns the RGBA
+/// Build a 32x32 RGBA blue circle fallback tray icon. Returns the RGBA
 /// pixel buffer and the dimensions.
 fn blue_circle_rgba() -> Vec<u8> {
     let w = 32u32;

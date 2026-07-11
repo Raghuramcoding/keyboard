@@ -1,7 +1,7 @@
 //! Multi-instance manager — each terminal tool gets its own PTY session.
 //!
 //! The [`InstanceManager`] holds a set of running PTY sessions keyed by
-//! instance ID.  It handles lifecycle: spawn, stdin write, kill, cleanup.
+//! instance ID. It handles lifecycle: spawn, stdin write, kill, cleanup.
 //!
 //! Each PTY runs in its own OS process (detached from any one WebSocket),
 //! so closing the browser tab leaves the tool running — reconnect later.
@@ -17,6 +17,8 @@ use tokio::sync::{broadcast, mpsc};
 
 use regex::Regex;
 
+// ---------------------------------------------------------------------------
+// Constants
 
 /// Maximum bytes retained per PTY for reconnection replay.
 const RING_BUF_CAP: usize = 64 * 1024;
@@ -34,6 +36,7 @@ const AS_BLOCKED: u8 = 3;
 const AS_ERROR: u8 = 4;
 
 // ---------------------------------------------------------------------------
+// AgentState <-> wire byte conversion
 
 /// Map an [`AgentState`] to the wire byte used in [`AtomicU8`].
 fn agent_state_to_u8(s: &AgentState) -> u8 {
@@ -58,9 +61,8 @@ fn u8_to_agent_state(n: u8) -> AgentState {
 }
 
 // ---------------------------------------------------------------------------
+// Regex-based heuristic detector for AI coding agent state from PTY output.
 
-/// Regex-based heuristic detector for AI coding agent state from PTY output.
-///
 /// Looks for tell-tale patterns in terminal output to infer whether the
 /// running agent is working, done, blocked waiting for user input, or hit
 /// an error.
@@ -90,7 +92,7 @@ impl AgentStateDetector {
     /// Feed a chunk of PTY output and check for a state transition.
     ///
     /// Returns `Some(new_state)` when a transition is detected, or `None`
-    /// if the current state should remain unchanged.  The caller is expected
+    /// if the current state should remain unchanged. The caller is expected
     /// to update its own `AtomicU8` when a transition is returned.
     pub fn feed(&mut self, chunk: &[u8], current_state: AgentState) -> Option<AgentState> {
         self.last_output = Instant::now();
@@ -138,7 +140,10 @@ impl AgentStateDetector {
     }
 }
 
-/// Handle to one running PTY session.
+// ---------------------------------------------------------------------------
+// Handle to one running PTY session.
+
+/// Internal PTY session state.
 struct PtySession {
     id: String,
     label: String,
@@ -160,7 +165,7 @@ struct PtySession {
 }
 
 impl PtySession {
-    /// Spawn a new PTY running `command`.  The reader thread runs in the
+    /// Spawn a new PTY running `command`. The reader thread runs in the
     /// background pushing output into both the ring buffer and a broadcast
     /// channel so that (re)connecting WebSockets can catch up.
     ///
@@ -371,7 +376,7 @@ pub struct InstanceManager {
     /// server's event receiver (consumed by the desktop app).
     event_tx: Option<mpsc::UnboundedSender<String>>,
     /// Broadcast channel for fanning out events to all WebSocket subscribers
-    /// (e.g. `/ws/events`).  Messages are the same JSON strings as `event_tx`.
+    /// (e.g. `/ws/events`). Messages are the same JSON strings as `event_tx`.
     bcast_tx: broadcast::Sender<String>,
 }
 
@@ -396,7 +401,7 @@ impl InstanceManager {
         }
     }
 
-    /// Create a new terminal instance.  Returns its [`InstanceInfo`].
+    /// Create a new terminal instance. Returns its [`InstanceInfo`].
     pub fn create(&self, req: &CreateInstanceRequest) -> Result<InstanceInfo, String> {
         let id = format!("inst_{:016x}", rand_id());
         let label = req
@@ -513,7 +518,7 @@ impl InstanceManager {
     }
 
     /// Subscribe to instance-level events (agent state transitions, etc.)
-    /// through a broadcast channel.  Multiple consumers can subscribe.
+    /// through a broadcast channel. Multiple consumers can subscribe.
     ///
     /// The receiver yields JSON-encoded [`tck_core::EventMessage`] strings
     /// emitted on agent state transitions and other lifecycle events.

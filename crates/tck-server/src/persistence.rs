@@ -8,12 +8,10 @@ use std::io;
 use std::path::PathBuf;
 
 /// A store for persisting session data as JSON files.
-#[allow(dead_code)]
 pub struct SessionStore {
     dir: PathBuf,
 }
 
-#[allow(dead_code)]
 impl SessionStore {
     /// Create a new `SessionStore`, ensuring the sessions directory exists.
     ///

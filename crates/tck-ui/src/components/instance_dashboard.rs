@@ -1,81 +1,12 @@
 //! Multi-instance dashboard — create, switch between, and dispatch to
 //! multiple coding tool instances (terminal-based CLI tools + AI chat sessions).
 
-use crate::ChatMsg;
+use crate::state::{AppState, InstanceState, record_usage};
+use crate::api::{fetch_instances, create_instance, write_stdin, delete_instance};
+use crate::terminal::connect_instance_terminal;
+use crate::{build_request, call_generate};
 use dioxus::prelude::*;
-use gloo_net::http::Request;
-use serde::{Deserialize, Serialize};
-use tck_core::{AgentState, CreateInstanceRequest, InstanceInfo, InstanceKind, InstanceStatus};
-
-/// Which top-level view is shown.
-#[derive(Clone, Copy, PartialEq)]
-pub enum AppView {
-    Dashboard,
-    Editor,
-    Orchestrator,
-}
-
-/// One running or saved instance, with its UI-relevant state.
-#[derive(Clone, PartialEq, Serialize, Deserialize)]
-pub struct InstanceState {
-    pub info: InstanceInfo,
-    /// Terminal output buffer (for terminal instances).
-    pub term_lines: String,
-    pub term_connected: bool,
-    /// Chat messages (for chat instances).
-    pub messages: Vec<ChatMsg>,
-    /// Current state of the AI agent running in this instance.
-    pub agent_state: AgentState,
-}
-
-// -----------------------------------------------------------------------
-// API helpers
-
-/// Fetch the list of instances from the server.
-pub async fn fetch_instances() -> Vec<InstanceInfo> {
-    let resp = Request::get("/api/instances").send().await;
-    match resp {
-        Ok(r) => r.json::<Vec<InstanceInfo>>().await.unwrap_or_default(),
-        Err(_) => vec![],
-    }
-}
-
-/// Create a new instance on the server.
-pub async fn create_instance(req: &CreateInstanceRequest) -> Option<InstanceInfo> {
-    let body = serde_json::to_string(req).ok()?;
-    let request = Request::post("/api/instances")
-        .header("Content-Type", "application/json")
-        .body(body);
-    let resp = match request {
-        Ok(r) => r.send().await,
-        Err(_) => return None,
-    };
-    match resp {
-        Ok(r) => r.json::<InstanceInfo>().await.ok(),
-        Err(_) => None,
-    }
-}
-
-/// Write stdin to a terminal instance.
-pub async fn write_stdin(id: &str, input: &str) -> bool {
-    let body = serde_json::json!({"input": input}).to_string();
-    let req = Request::post(&format!("/api/instances/{id}/stdin"))
-        .header("Content-Type", "application/json")
-        .body(body);
-    let resp = match req {
-        Ok(r) => r.send().await,
-        Err(_) => return false,
-    };
-    resp.map(|r| r.ok()).unwrap_or(false)
-}
-
-/// Delete an instance on the server.
-pub async fn delete_instance(id: &str) -> bool {
-    let resp = Request::delete(&format!("/api/instances/{id}"))
-        .send()
-        .await;
-    resp.map(|r| r.ok()).unwrap_or(false)
-}
+use tck_core::{AgentState, ChatMsg, CreateInstanceRequest, InstanceInfo, InstanceKind, InstanceStatus, Role};
 
 // -----------------------------------------------------------------------
 // Sidebar component
@@ -371,4 +302,168 @@ pub fn instance_ws_url(id: &str) -> String {
     let proto = if loc.protocol().unwrap_or_default() == "https:" { "wss" } else { "ws" };
     let host = loc.host().unwrap_or_else(|_| "127.0.0.1:8080".into());
     format!("{proto}://{host}/ws/pty/{id}")
+}
+
+/// The main dashboard component that combines the sidebar and instance panel.
+#[component]
+pub fn InstanceDashboard() -> Element {
+    let mut state = use_context::<AppState>();
+
+    use_future(move || async move {
+        let list = fetch_instances().await;
+        let mut instances = state.instances;
+        let instates: Vec<InstanceState> = list
+            .into_iter()
+            .map(|info| {
+                let agent_state = info.agent_state;
+                InstanceState {
+                    info,
+                    term_lines: String::new(),
+                    term_connected: false,
+                    messages: Vec::new(),
+                    agent_state,
+                }
+            })
+            .collect();
+        if !instates.is_empty() && state.active_id.peek().is_none() {
+            state.active_id.set(Some(instates[0].info.id.clone()));
+        }
+        instances.set(instates);
+    });
+
+    let instances_list = state.instances.read().clone();
+    let active = state.active_id.read().clone();
+    let selected = instances_list.iter().find(|s| Some(s.info.id.as_str()) == active.as_deref()).cloned();
+
+    rsx! {
+        div { class: "dashboard",
+            InstanceSidebar {
+                instances: instances_list.clone(),
+                active_id: active.clone(),
+                on_select: move |id| { state.active_id.set(Some(id)); },
+                on_create_terminal: move |cmd: String| {
+                    spawn(async move {
+                        let req = CreateInstanceRequest {
+                            kind: InstanceKind::Terminal,
+                            label: Some(cmd.clone()),
+                            command: Some(cmd.clone()),
+                            cwd: None,
+                        };
+                        if let Some(info) = create_instance(&req).await {
+                            let mut list = state.instances.peek().clone();
+                            let agent_state = info.agent_state;
+                            list.push(InstanceState {
+                                info: info.clone(),
+                                term_lines: String::new(),
+                                term_connected: false,
+                                messages: Vec::new(),
+                                agent_state,
+                            });
+                            state.instances.set(list);
+                            let id = info.id.clone();
+                            state.active_id.set(Some(id.clone()));
+                            // Connect terminal after creation
+                            connect_instance_terminal(state, id);
+                        }
+                    });
+                },
+                on_create_chat: move |_| {
+                    let id = format!("chat_{:016x}", rand_u64());
+                    let info = InstanceInfo {
+                        id: id.clone(),
+                        kind: InstanceKind::Chat,
+                        label: "AI Chat".into(),
+                        command: None,
+                        cwd: None,
+                        status: InstanceStatus::Running,
+                        error: None,
+                        created_at: js_sys::Date::now() as u64,
+                        agent_state: AgentState::default(),
+                        last_output_at: 0,
+                    };
+                    let mut list = state.instances.peek().clone();
+                    list.push(InstanceState {
+                        info,
+                        term_lines: String::new(),
+                        term_connected: false,
+                        messages: Vec::new(),
+                        agent_state: AgentState::default(),
+                    });
+                    state.instances.set(list);
+                    state.active_id.set(Some(id));
+                },
+                on_delete: move |id: String| {
+                    let id_c = id.clone();
+                    spawn(async move {
+                        delete_instance(&id_c).await;
+                        let mut list = state.instances.peek().clone();
+                        list.retain(|s| s.info.id != id_c);
+                        let new_active = if state.active_id.peek().as_deref() == Some(&id_c) {
+                            list.first().map(|s| s.info.id.clone())
+                        } else {
+                            state.active_id.peek().clone()
+                        };
+                        state.instances.set(list);
+                        state.active_id.set(new_active);
+                    });
+                },
+            }
+            InstancePanel {
+                instance: selected.clone(),
+                on_send: move |args: (String, String)| {
+                    send_to_instance(state, &args.0, &args.1);
+                },
+            }
+        }
+    }
+}
+
+fn send_to_instance(mut state: AppState, id: &str, text: &str) {
+    let id_str = id.to_string();
+    let text_str = text.to_string();
+    spawn(async move {
+        write_stdin(&id_str, &text_str).await;
+
+        let mut list = state.instances.peek().clone();
+        let kind = list.iter().find(|s| s.info.id == id_str).map(|s| s.info.kind.clone());
+
+        if kind == Some(InstanceKind::Terminal) {
+            if let Some(inst) = list.iter_mut().find(|s| s.info.id == id_str) {
+                inst.term_lines.push_str(&format!("$ {text_str}\n"));
+            }
+            state.instances.set(list);
+            return;
+        }
+
+        if let Some(inst) = list.iter_mut().find(|s| s.info.id == id_str) {
+            inst.messages.push(ChatMsg {
+                role: Role::User,
+                text: text_str.clone(),
+            });
+        }
+        state.instances.set(list);
+
+        let req = build_request(&state, text_str, Some("You are T.C.K, a helpful AI coding assistant.".into()));
+        let has_server = *state.server.peek();
+        let provider_id = state.provider.peek().clone();
+        let resp = call_generate(req, has_server).await;
+
+        let mut list2 = state.instances.peek().clone();
+        if let Some(inst) = list2.iter_mut().find(|s| s.info.id == id_str) {
+            let msg = match (resp.response, resp.error) {
+                (Some(r), _) => ChatMsg { role: Role::Ai, text: r },
+                (_, Some(e)) => ChatMsg { role: Role::Err, text: e },
+                _ => ChatMsg { role: Role::Err, text: "Empty response from provider.".into() },
+            };
+            let chars = msg.text.len();
+            inst.messages.push(msg);
+            state.instances.set(list2);
+            record_usage(state.token_usage, &provider_id, chars);
+        }
+    });
+}
+
+fn rand_u64() -> u64 {
+    let d = js_sys::Date::now();
+    ((d * 1_000_000.0) as u64) ^ (web_sys::window().map(|w| w.inner_width().unwrap_or_default().as_f64().unwrap_or(0.0) as u64).unwrap_or(0))
 }
