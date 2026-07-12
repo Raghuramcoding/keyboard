@@ -363,7 +363,7 @@ pub fn InstanceDashboard() -> Element {
                             let id = info.id.clone();
                             state.active_id.set(Some(id.clone()));
                             // Connect terminal after creation
-                            connect_instance_terminal(state, id);
+                            spawn(connect_instance_terminal(state, id));
                         }
                     });
                 },

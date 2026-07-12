@@ -100,12 +100,6 @@ fn load_instances() -> Vec<InstanceState> {
         .unwrap_or_default()
 }
 
-pub fn save_instances(instances: &[InstanceState]) {
-    if let Ok(json) = serde_json::to_string(instances) {
-        let _ = LocalStorage::set(INSTANCES_KEY, &json);
-    }
-}
-
 pub fn record_usage(mut usage: Signal<Vec<AgentTokenUsage>>, agent_id: &str, chars: usize) {
     let (bucket, icon) = bucket_agent(agent_id);
     let mut list = usage.peek().clone();

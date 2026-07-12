@@ -13,6 +13,7 @@ use futures_channel::mpsc::UnboundedReceiver;
 use futures_util::{SinkExt, StreamExt};
 use gloo_net::http::Request;
 use gloo_net::websocket::{futures::WebSocket, Message as WsMessage};
+use gloo_storage::{LocalStorage, Storage};
 use landing::LandingPage;
 use serde_json::{json, Value};
 use tck_core::{
@@ -113,8 +114,18 @@ fn AppMain() -> Element {
     // AppState is now created in state.rs with all signals
     let state = use_context_provider(move || AppState::new(term));
 
+    // Persist instances to localStorage
+    use_effect(move || {
+        let data = state.instances.peek().clone();
+        if let Ok(json) = serde_json::to_string(&data) {
+            let _ = LocalStorage::set("tck.instances", &json);
+        }
+    });
+
     // Subscribe to server events
-    subscribe_events(state.instances, state.server);
+    use_future(move || {
+        subscribe_events(state.instances, state.server)
+    });
 
     rsx! {
         div { class: "app",

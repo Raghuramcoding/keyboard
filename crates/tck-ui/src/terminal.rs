@@ -41,10 +41,6 @@ pub fn sanitize_terminal(s: &str) -> String {
     out
 }
 
-pub fn terminal_offline_msg() -> String {
-    "[T.C.K terminal offline]\r\nThe terminal needs the native T.C.K server, which can't run on a\r\nstatic host like GitHub Pages. To use it, run the server locally:\r\n\r\n    cargo run -p tck-server\r\n\r\nThen reload this page from http://127.0.0.1:3000\r\n".to_string()
-}
-
 pub fn ws_url() -> String {
     let loc = web_sys::window().unwrap().location();
     let proto = if loc.protocol().unwrap_or_default() == "https:" { "wss" } else { "ws" };
