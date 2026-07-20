@@ -1,0 +1,2017 @@
+{
+  "nodes": [
+    {
+      "id": "crates_tck_ui_src_api_fetchrepos",
+      "label": "fetchRepos",
+      "file_type": "code",
+      "source_file": "crates/tck-ui/src/api.ts",
+      "source_location": "L7",
+      "_origin": "ast"
+    },
+    {
+      "id": "crates_tck_ui_src_api_fetchcontents",
+      "label": "fetchContents",
+      "file_type": "code",
+      "source_file": "crates/tck-ui/src/api.ts",
+      "source_location": "L13",
+      "_origin": "ast"
+    },
+    {
+      "id": "crates_tck_ui_src_api_commitfile",
+      "label": "commitFile",
+      "file_type": "code",
+      "source_file": "crates/tck-ui/src/api.ts",
+      "source_location": "L21",
+      "_origin": "ast"
+    },
+    {
+      "id": "crates_tck_ui_src_api_scaffoldrepo",
+      "label": "scaffoldRepo",
+      "file_type": "code",
+      "source_file": "crates/tck-ui/src/api.ts",
+      "source_location": "L35",
+      "_origin": "ast"
+    },
+    {
+      "id": "crates_tck_ui_src_api_instanceinfo",
+      "label": "InstanceInfo",
+      "file_type": "code",
+      "source_file": "crates/tck-ui/src/api.ts",
+      "source_location": "L50",
+      "_origin": "ast"
+    },
+    {
+      "id": "crates_tck_ui_src_api_createinstancerequest",
+      "label": "CreateInstanceRequest",
+      "file_type": "code",
+      "source_file": "crates/tck-ui/src/api.ts",
+      "source_location": "L63",
+      "_origin": "ast"
+    },
+    {
+      "id": "crates_tck_ui_src_api_fetchinstances",
+      "label": "fetchInstances",
+      "file_type": "code",
+      "source_file": "crates/tck-ui/src/api.ts",
+      "source_location": "L70",
+      "_origin": "ast"
+    },
+    {
+      "id": "crates_tck_ui_src_api_createinstance",
+      "label": "createInstance",
+      "file_type": "code",
+      "source_file": "crates/tck-ui/src/api.ts",
+      "source_location": "L76",
+      "_origin": "ast"
+    },
+    {
+      "id": "crates_tck_ui_src_api_writestdin",
+      "label": "writeStdin",
+      "file_type": "code",
+      "source_file": "crates/tck-ui/src/api.ts",
+      "source_location": "L89",
+      "_origin": "ast"
+    },
+    {
+      "id": "crates_tck_ui_src_api_deleteinstance",
+      "label": "deleteInstance",
+      "file_type": "code",
+      "source_file": "crates/tck-ui/src/api.ts",
+      "source_location": "L98",
+      "_origin": "ast"
+    },
+    {
+      "id": "crates_tck_ui_src_api_connectinstanceterminal",
+      "label": "connectInstanceTerminal",
+      "file_type": "code",
+      "source_file": "crates/tck-ui/src/api.ts",
+      "source_location": "L106",
+      "_origin": "ast"
+    },
+    {
+      "id": "crates_tck_ui_src_api_randu64",
+      "label": "randU64",
+      "file_type": "code",
+      "source_file": "crates/tck-ui/src/api.ts",
+      "source_location": "L139",
+      "_origin": "ast"
+    },
+    {
+      "id": "crates_tck_ui_src_app_state_appstate",
+      "label": "AppState",
+      "file_type": "code",
+      "source_file": "crates/tck-ui/src/app_state.ts",
+      "source_location": "L17",
+      "_origin": "ast"
+    },
+    {
+      "id": "crates_tck_ui_src_components_chat_panel_chatpanel",
+      "label": "ChatPanel",
+      "file_type": "code",
+      "source_file": "crates/tck-ui/src/components/chat_panel.ts",
+      "source_location": "L6",
+      "_origin": "ast"
+    },
+    {
+      "id": "crates_tck_ui_src_components_instance_dashboard_instancedashboard",
+      "label": "InstanceDashboard",
+      "file_type": "code",
+      "source_file": "crates/tck-ui/src/components/instance_dashboard.ts",
+      "source_location": "L14",
+      "_origin": "ast"
+    },
+    {
+      "id": "crates_tck_ui_src_components_orchestrator_panel_orchestratorpanel",
+      "label": "OrchestratorPanel",
+      "file_type": "code",
+      "source_file": "crates/tck-ui/src/components/orchestrator_panel.ts",
+      "source_location": "L20",
+      "_origin": "ast"
+    },
+    {
+      "id": "crates_tck_ui_src_components_right_panel_rightpanel",
+      "label": "RightPanel",
+      "file_type": "code",
+      "source_file": "crates/tck-ui/src/components/right_panel.ts",
+      "source_location": "L8",
+      "_origin": "ast"
+    },
+    {
+      "id": "crates_tck_ui_src_components_scaffold_panel_scaffoldpanel",
+      "label": "ScaffoldPanel",
+      "file_type": "code",
+      "source_file": "crates/tck-ui/src/components/scaffold_panel.ts",
+      "source_location": "L7",
+      "_origin": "ast"
+    },
+    {
+      "id": "crates_tck_ui_src_components_settings_modal_settingsmodal",
+      "label": "SettingsModal",
+      "file_type": "code",
+      "source_file": "crates/tck-ui/src/components/settings_modal.ts",
+      "source_location": "L6",
+      "_origin": "ast"
+    },
+    {
+      "id": "crates_tck_ui_src_components_sidebar_sidebar",
+      "label": "Sidebar",
+      "file_type": "code",
+      "source_file": "crates/tck-ui/src/components/sidebar.ts",
+      "source_location": "L8",
+      "_origin": "ast"
+    },
+    {
+      "id": "crates_tck_ui_src_components_source_control_sourcecontrol",
+      "label": "SourceControl",
+      "file_type": "code",
+      "source_file": "crates/tck-ui/src/components/source_control.ts",
+      "source_location": "L7",
+      "_origin": "ast"
+    },
+    {
+      "id": "crates_tck_ui_src_components_terminal_panel_terminal",
+      "label": "Terminal",
+      "file_type": "code",
+      "source_file": "crates/tck-ui/src/components/terminal_panel.ts",
+      "source_location": "L3",
+      "_origin": "ast"
+    },
+    {
+      "id": "crates_tck_ui_src_components_terminal_panel_terminalpanelview",
+      "label": "TerminalPanelView",
+      "file_type": "code",
+      "source_file": "crates/tck-ui/src/components/terminal_panel.ts",
+      "source_location": "L91",
+      "_origin": "ast"
+    },
+    {
+      "id": "crates_tck_ui_src_components_title_bar_titlebar",
+      "label": "TitleBar",
+      "file_type": "code",
+      "source_file": "crates/tck-ui/src/components/title_bar.ts",
+      "source_location": "L5",
+      "_origin": "ast"
+    },
+    {
+      "id": "crates_tck_ui_src_components_token_dashboard_tokenusagedashboard",
+      "label": "TokenUsageDashboard",
+      "file_type": "code",
+      "source_file": "crates/tck-ui/src/components/token_dashboard.ts",
+      "source_location": "L6",
+      "_origin": "ast"
+    },
+    {
+      "id": "crates_tck_ui_src_main_initapp",
+      "label": "initApp",
+      "file_type": "code",
+      "source_file": "crates/tck-ui/src/main.ts",
+      "source_location": "L13",
+      "_origin": "ast"
+    },
+    {
+      "id": "crates_tck_ui_src_main_getappstate",
+      "label": "getAppState",
+      "file_type": "code",
+      "source_file": "crates/tck-ui/src/main.ts",
+      "source_location": "L148",
+      "_origin": "ast"
+    },
+    {
+      "id": "crates_tck_ui_src_state_appstate",
+      "label": "AppState",
+      "file_type": "code",
+      "source_file": "crates/tck-ui/src/state.ts",
+      "source_location": "L17",
+      "_origin": "ast"
+    },
+    {
+      "id": "crates_tck_ui_src_state_recordusage",
+      "label": "recordUsage",
+      "file_type": "code",
+      "source_file": "crates/tck-ui/src/state.ts",
+      "source_location": "L154",
+      "_origin": "ast"
+    },
+    {
+      "id": "crates_tck_ui_src_state_buildrequest",
+      "label": "buildRequest",
+      "file_type": "code",
+      "source_file": "crates/tck-ui/src/state.ts",
+      "source_location": "L182",
+      "_origin": "ast"
+    },
+    {
+      "id": "crates_tck_ui_src_state_callgenerate",
+      "label": "callGenerate",
+      "file_type": "code",
+      "source_file": "crates/tck-ui/src/state.ts",
+      "source_location": "L219",
+      "_origin": "ast"
+    },
+    {
+      "id": "crates_tck_ui_src_types_chatmsg",
+      "label": "ChatMsg",
+      "file_type": "code",
+      "source_file": "crates/tck-ui/src/types.ts",
+      "source_location": "L9",
+      "_origin": "ast"
+    },
+    {
+      "id": "crates_tck_ui_src_types_generaterequest",
+      "label": "GenerateRequest",
+      "file_type": "code",
+      "source_file": "crates/tck-ui/src/types.ts",
+      "source_location": "L14",
+      "_origin": "ast"
+    },
+    {
+      "id": "crates_tck_ui_src_types_generateresponse",
+      "label": "GenerateResponse",
+      "file_type": "code",
+      "source_file": "crates/tck-ui/src/types.ts",
+      "source_location": "L25",
+      "_origin": "ast"
+    },
+    {
+      "id": "crates_tck_ui_src_types_settings",
+      "label": "Settings",
+      "file_type": "code",
+      "source_file": "crates/tck-ui/src/types.ts",
+      "source_location": "L31",
+      "_origin": "ast"
+    },
+    {
+      "id": "crates_tck_ui_src_types_providerconfig",
+      "label": "ProviderConfig",
+      "file_type": "code",
+      "source_file": "crates/tck-ui/src/types.ts",
+      "source_location": "L39",
+      "_origin": "ast"
+    },
+    {
+      "id": "crates_tck_ui_src_types_customcommand",
+      "label": "CustomCommand",
+      "file_type": "code",
+      "source_file": "crates/tck-ui/src/types.ts",
+      "source_location": "L47",
+      "_origin": "ast"
+    },
+    {
+      "id": "crates_tck_ui_src_types_agent",
+      "label": "Agent",
+      "file_type": "code",
+      "source_file": "crates/tck-ui/src/types.ts",
+      "source_location": "L54",
+      "_origin": "ast"
+    },
+    {
+      "id": "crates_tck_ui_src_types_agentrole",
+      "label": "AgentRole",
+      "file_type": "code",
+      "source_file": "crates/tck-ui/src/types.ts",
+      "source_location": "L61",
+      "_origin": "ast"
+    },
+    {
+      "id": "crates_tck_ui_src_types_plannedtask",
+      "label": "PlannedTask",
+      "file_type": "code",
+      "source_file": "crates/tck-ui/src/types.ts",
+      "source_location": "L68",
+      "_origin": "ast"
+    },
+    {
+      "id": "crates_tck_ui_src_types_catalogmodel",
+      "label": "CatalogModel",
+      "file_type": "code",
+      "source_file": "crates/tck-ui/src/types.ts",
+      "source_location": "L74",
+      "_origin": "ast"
+    },
+    {
+      "id": "crates_tck_ui_src_types_agenttokenusage",
+      "label": "AgentTokenUsage",
+      "file_type": "code",
+      "source_file": "crates/tck-ui/src/types.ts",
+      "source_location": "L83",
+      "_origin": "ast"
+    },
+    {
+      "id": "crates_tck_ui_src_types_instanceinfo",
+      "label": "InstanceInfo",
+      "file_type": "code",
+      "source_file": "crates/tck-ui/src/types.ts",
+      "source_location": "L111",
+      "_origin": "ast"
+    },
+    {
+      "id": "crates_tck_ui_src_types_instancestate",
+      "label": "InstanceState",
+      "file_type": "code",
+      "source_file": "crates/tck-ui/src/types.ts",
+      "source_location": "L124",
+      "_origin": "ast"
+    },
+    {
+      "id": "crates_tck_ui_src_types_createinstancerequest",
+      "label": "CreateInstanceRequest",
+      "file_type": "code",
+      "source_file": "crates/tck-ui/src/types.ts",
+      "source_location": "L132",
+      "_origin": "ast"
+    },
+    {
+      "id": "crates_tck_ui_src_types_updateinstancerequest",
+      "label": "UpdateInstanceRequest",
+      "file_type": "code",
+      "source_file": "crates/tck-ui/src/types.ts",
+      "source_location": "L139",
+      "_origin": "ast"
+    },
+    {
+      "id": "crates_tck_ui_src_types_githubstatus",
+      "label": "GitHubStatus",
+      "file_type": "code",
+      "source_file": "crates/tck-ui/src/types.ts",
+      "source_location": "L143",
+      "_origin": "ast"
+    },
+    {
+      "id": "crates_tck_ui_src_types_repoinfo",
+      "label": "RepoInfo",
+      "file_type": "code",
+      "source_file": "crates/tck-ui/src/types.ts",
+      "source_location": "L149",
+      "_origin": "ast"
+    },
+    {
+      "id": "crates_tck_ui_src_types_repoentry",
+      "label": "RepoEntry",
+      "file_type": "code",
+      "source_file": "crates/tck-ui/src/types.ts",
+      "source_location": "L156",
+      "_origin": "ast"
+    },
+    {
+      "id": "crates_tck_ui_src_types_repofile",
+      "label": "RepoFile",
+      "file_type": "code",
+      "source_file": "crates/tck-ui/src/types.ts",
+      "source_location": "L163",
+      "_origin": "ast"
+    },
+    {
+      "id": "crates_tck_ui_src_types_commitrequest",
+      "label": "CommitRequest",
+      "file_type": "code",
+      "source_file": "crates/tck-ui/src/types.ts",
+      "source_location": "L170",
+      "_origin": "ast"
+    },
+    {
+      "id": "crates_tck_ui_src_types_scaffoldfile",
+      "label": "ScaffoldFile",
+      "file_type": "code",
+      "source_file": "crates/tck-ui/src/types.ts",
+      "source_location": "L178",
+      "_origin": "ast"
+    },
+    {
+      "id": "crates_tck_ui_src_types_scaffoldtemplate",
+      "label": "ScaffoldTemplate",
+      "file_type": "code",
+      "source_file": "crates/tck-ui/src/types.ts",
+      "source_location": "L183",
+      "_origin": "ast"
+    },
+    {
+      "id": "crates_tck_ui_src_types_scaffoldtoreporequest",
+      "label": "ScaffoldToRepoRequest",
+      "file_type": "code",
+      "source_file": "crates/tck-ui/src/types.ts",
+      "source_location": "L191",
+      "_origin": "ast"
+    },
+    {
+      "id": "crates_tck_ui_src_types_sessionmetadata",
+      "label": "SessionMetadata",
+      "file_type": "code",
+      "source_file": "crates/tck-ui/src/types.ts",
+      "source_location": "L197",
+      "_origin": "ast"
+    },
+    {
+      "id": "crates_tck_ui_src_types_windowstate",
+      "label": "WindowState",
+      "file_type": "code",
+      "source_file": "crates/tck-ui/src/types.ts",
+      "source_location": "L205",
+      "_origin": "ast"
+    },
+    {
+      "id": "crates_tck_ui_src_types_eventmessage",
+      "label": "EventMessage",
+      "file_type": "code",
+      "source_file": "crates/tck-ui/src/types.ts",
+      "source_location": "L213",
+      "_origin": "ast"
+    },
+    {
+      "id": "crates_tck_ui_src_types_knownagents",
+      "label": "knownAgents",
+      "file_type": "code",
+      "source_file": "crates/tck-ui/src/types.ts",
+      "source_location": "L221",
+      "_origin": "ast"
+    },
+    {
+      "id": "crates_tck_ui_src_types_providerpresets",
+      "label": "providerPresets",
+      "file_type": "code",
+      "source_file": "crates/tck-ui/src/types.ts",
+      "source_location": "L231",
+      "_origin": "ast"
+    },
+    {
+      "id": "crates_tck_ui_src_types_claudemodels",
+      "label": "claudeModels",
+      "file_type": "code",
+      "source_file": "crates/tck-ui/src/types.ts",
+      "source_location": "L245",
+      "_origin": "ast"
+    },
+    {
+      "id": "crates_tck_ui_src_types_orchestratorroles",
+      "label": "orchestratorRoles",
+      "file_type": "code",
+      "source_file": "crates/tck-ui/src/types.ts",
+      "source_location": "L249",
+      "_origin": "ast"
+    },
+    {
+      "id": "crates_tck_ui_src_types_rolebyid",
+      "label": "roleById",
+      "file_type": "code",
+      "source_file": "crates/tck-ui/src/types.ts",
+      "source_location": "L319",
+      "_origin": "ast"
+    },
+    {
+      "id": "crates_tck_ui_src_types_plannersystem",
+      "label": "plannerSystem",
+      "file_type": "code",
+      "source_file": "crates/tck-ui/src/types.ts",
+      "source_location": "L328",
+      "_origin": "ast"
+    },
+    {
+      "id": "crates_tck_ui_src_types_plannerprompt",
+      "label": "plannerPrompt",
+      "file_type": "code",
+      "source_file": "crates/tck-ui/src/types.ts",
+      "source_location": "L333",
+      "_origin": "ast"
+    },
+    {
+      "id": "crates_tck_ui_src_types_workerprompt",
+      "label": "workerPrompt",
+      "file_type": "code",
+      "source_file": "crates/tck-ui/src/types.ts",
+      "source_location": "L337",
+      "_origin": "ast"
+    },
+    {
+      "id": "crates_tck_ui_src_types_synthesizersystem",
+      "label": "synthesizerSystem",
+      "file_type": "code",
+      "source_file": "crates/tck-ui/src/types.ts",
+      "source_location": "L341",
+      "_origin": "ast"
+    },
+    {
+      "id": "crates_tck_ui_src_types_synthesizerprompt",
+      "label": "synthesizerPrompt",
+      "file_type": "code",
+      "source_file": "crates/tck-ui/src/types.ts",
+      "source_location": "L345",
+      "_origin": "ast"
+    },
+    {
+      "id": "crates_tck_ui_src_types_parseplan",
+      "label": "parsePlan",
+      "file_type": "code",
+      "source_file": "crates/tck-ui/src/types.ts",
+      "source_location": "L355",
+      "_origin": "ast"
+    },
+    {
+      "id": "crates_tck_ui_src_types_fallbackplan",
+      "label": "fallbackPlan",
+      "file_type": "code",
+      "source_file": "crates/tck-ui/src/types.ts",
+      "source_location": "L399",
+      "_origin": "ast"
+    },
+    {
+      "id": "crates_tck_ui_src_types_scaffoldtemplates",
+      "label": "scaffoldTemplates",
+      "file_type": "code",
+      "source_file": "crates/tck-ui/src/types.ts",
+      "source_location": "L407",
+      "_origin": "ast"
+    },
+    {
+      "id": "crates_tck_ui_src_types_agentcolor",
+      "label": "agentColor",
+      "file_type": "code",
+      "source_file": "crates/tck-ui/src/types.ts",
+      "source_location": "L460",
+      "_origin": "ast"
+    },
+    {
+      "id": "crates_tck_ui_src_types_bucketagent",
+      "label": "bucketAgent",
+      "file_type": "code",
+      "source_file": "crates/tck-ui/src/types.ts",
+      "source_location": "L484",
+      "_origin": "ast"
+    },
+    {
+      "id": "crates_tck_ui_src_types_agentstatecolor",
+      "label": "agentStateColor",
+      "file_type": "code",
+      "source_file": "crates/tck-ui/src/types.ts",
+      "source_location": "L508",
+      "_origin": "ast"
+    },
+    {
+      "id": "crates_tck_ui_src_types_agentstateicon",
+      "label": "agentStateIcon",
+      "file_type": "code",
+      "source_file": "crates/tck-ui/src/types.ts",
+      "source_location": "L519",
+      "_origin": "ast"
+    },
+    {
+      "id": "crates_tck_ui_src_types_usagepct",
+      "label": "usagePct",
+      "file_type": "code",
+      "source_file": "crates/tck-ui/src/types.ts",
+      "source_location": "L530",
+      "_origin": "ast"
+    },
+    {
+      "id": "crates_tck_ui_src_types_instanceicon",
+      "label": "instanceIcon",
+      "file_type": "code",
+      "source_file": "crates/tck-ui/src/types.ts",
+      "source_location": "L535",
+      "_origin": "ast"
+    },
+    {
+      "id": "crates_tck_ui_src_types_agentstatecssclass",
+      "label": "agentStateCssClass",
+      "file_type": "code",
+      "source_file": "crates/tck-ui/src/types.ts",
+      "source_location": "L550",
+      "_origin": "ast"
+    },
+    {
+      "id": "crates_tck_ui_src_types_agentstatelabel",
+      "label": "agentStateLabel",
+      "file_type": "code",
+      "source_file": "crates/tck-ui/src/types.ts",
+      "source_location": "L554",
+      "_origin": "ast"
+    },
+    {
+      "id": "crates_tck_ui_src_types_agentstateiconchar",
+      "label": "agentStateIconChar",
+      "file_type": "code",
+      "source_file": "crates/tck-ui/src/types.ts",
+      "source_location": "L565",
+      "_origin": "ast"
+    },
+    {
+      "id": "crates_tck_ui_src_types_instancewsurl",
+      "label": "instanceWsUrl",
+      "file_type": "code",
+      "source_file": "crates/tck-ui/src/types.ts",
+      "source_location": "L576",
+      "_origin": "ast"
+    },
+    {
+      "id": "crates_tck_ui_src_types_randu64",
+      "label": "randU64",
+      "file_type": "code",
+      "source_file": "crates/tck-ui/src/types.ts",
+      "source_location": "L583",
+      "_origin": "ast"
+    },
+    {
+      "id": "tck_ai_src_generate_generate",
+      "label": "generate",
+      "file_type": "code",
+      "source_file": "tck-ai/src/generate.ts",
+      "source_location": "L99",
+      "_origin": "ast"
+    },
+    {
+      "id": "tck_ai_src_models_fetchcatalog",
+      "label": "fetchCatalog",
+      "file_type": "code",
+      "source_file": "tck-ai/src/models.ts",
+      "source_location": "L29",
+      "_origin": "ast"
+    },
+    {
+      "id": "tck_ai_src_models_invalidatecatalog",
+      "label": "invalidateCatalog",
+      "file_type": "code",
+      "source_file": "tck-ai/src/models.ts",
+      "source_location": "L48",
+      "_origin": "ast"
+    },
+    {
+      "id": "tck_ai_src_models_getproviders",
+      "label": "getProviders",
+      "file_type": "code",
+      "source_file": "tck-ai/src/models.ts",
+      "source_location": "L56",
+      "_origin": "ast"
+    },
+    {
+      "id": "tck_ai_src_models_getmodels",
+      "label": "getModels",
+      "file_type": "code",
+      "source_file": "tck-ai/src/models.ts",
+      "source_location": "L85",
+      "_origin": "ast"
+    },
+    {
+      "id": "tck_ai_src_types_generaterequest",
+      "label": "GenerateRequest",
+      "file_type": "code",
+      "source_file": "tck-ai/src/types.ts",
+      "source_location": "L4",
+      "_origin": "ast"
+    },
+    {
+      "id": "tck_ai_src_types_generateresponse",
+      "label": "GenerateResponse",
+      "file_type": "code",
+      "source_file": "tck-ai/src/types.ts",
+      "source_location": "L24",
+      "_origin": "ast"
+    },
+    {
+      "id": "tck_ai_src_types_modelinfo",
+      "label": "ModelInfo",
+      "file_type": "code",
+      "source_file": "tck-ai/src/types.ts",
+      "source_location": "L35",
+      "_origin": "ast"
+    },
+    {
+      "id": "tck_ai_src_types_providerinfo",
+      "label": "ProviderInfo",
+      "file_type": "code",
+      "source_file": "tck-ai/src/types.ts",
+      "source_location": "L64",
+      "_origin": "ast"
+    },
+    {
+      "id": "tck_ai_src_types_modelsdevcatalog",
+      "label": "ModelsDevCatalog",
+      "file_type": "code",
+      "source_file": "tck-ai/src/types.ts",
+      "source_location": "L80",
+      "_origin": "ast"
+    },
+    {
+      "id": "tck_ai_src_types_modelsdevmodel",
+      "label": "ModelsDevModel",
+      "file_type": "code",
+      "source_file": "tck-ai/src/types.ts",
+      "source_location": "L85",
+      "_origin": "ast"
+    },
+    {
+      "id": "tck_ai_src_types_modelsdevprovider",
+      "label": "ModelsDevProvider",
+      "file_type": "code",
+      "source_file": "tck-ai/src/types.ts",
+      "source_location": "L104",
+      "_origin": "ast"
+    }
+  ],
+  "edges": [
+    {
+      "source": "crates_tck_ui_src_app_state",
+      "target": "crates_tck_ui_src_state",
+      "relation": "re_exports",
+      "context": "export",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/tck-ui/src/app_state.ts",
+      "source_location": "L199",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "crates_tck_ui_src_terminal",
+      "target": "crates_tck_ui_src_components_terminal_panel",
+      "relation": "re_exports",
+      "context": "export",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/tck-ui/src/terminal.ts",
+      "source_location": "L4",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "tck_ai_api_index",
+      "target": "tck_ai_src_server",
+      "relation": "re_exports",
+      "context": "export",
+      "confidence": "EXTRACTED",
+      "source_file": "tck-ai/api/index.ts",
+      "source_location": "L10",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "crates_tck_ui_src_components_chat_panel",
+      "target": "crates_tck_ui_src_app_state_appstate",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/tck-ui/src/components/chat_panel.ts",
+      "source_location": "L3",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "crates_tck_ui_src_components_instance_dashboard",
+      "target": "crates_tck_ui_src_app_state_appstate",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/tck-ui/src/components/instance_dashboard.ts",
+      "source_location": "L3",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "crates_tck_ui_src_components_instance_dashboard",
+      "target": "crates_tck_ui_src_state_buildrequest",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/tck-ui/src/components/instance_dashboard.ts",
+      "source_location": "L4",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "crates_tck_ui_src_components_instance_dashboard",
+      "target": "crates_tck_ui_src_state_callgenerate",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/tck-ui/src/components/instance_dashboard.ts",
+      "source_location": "L4",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "crates_tck_ui_src_components_instance_dashboard",
+      "target": "crates_tck_ui_src_state_recordusage",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/tck-ui/src/components/instance_dashboard.ts",
+      "source_location": "L4",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "crates_tck_ui_src_components_instance_dashboard",
+      "target": "crates_tck_ui_src_components_terminal_panel_terminalpanelview",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/tck-ui/src/components/instance_dashboard.ts",
+      "source_location": "L12",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "crates_tck_ui_src_components_orchestrator_panel",
+      "target": "crates_tck_ui_src_app_state_appstate",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/tck-ui/src/components/orchestrator_panel.ts",
+      "source_location": "L3",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "crates_tck_ui_src_components_orchestrator_panel",
+      "target": "crates_tck_ui_src_state_buildrequest",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/tck-ui/src/components/orchestrator_panel.ts",
+      "source_location": "L4",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "crates_tck_ui_src_components_orchestrator_panel",
+      "target": "crates_tck_ui_src_state_callgenerate",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/tck-ui/src/components/orchestrator_panel.ts",
+      "source_location": "L4",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "crates_tck_ui_src_components_orchestrator_panel",
+      "target": "crates_tck_ui_src_state_recordusage",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/tck-ui/src/components/orchestrator_panel.ts",
+      "source_location": "L4",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "crates_tck_ui_src_components_right_panel",
+      "target": "crates_tck_ui_src_app_state_appstate",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/tck-ui/src/components/right_panel.ts",
+      "source_location": "L3",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "crates_tck_ui_src_components_right_panel",
+      "target": "crates_tck_ui_src_components_chat_panel_chatpanel",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/tck-ui/src/components/right_panel.ts",
+      "source_location": "L4",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "crates_tck_ui_src_components_right_panel",
+      "target": "crates_tck_ui_src_components_orchestrator_panel_orchestratorpanel",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/tck-ui/src/components/right_panel.ts",
+      "source_location": "L5",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "crates_tck_ui_src_components_right_panel",
+      "target": "crates_tck_ui_src_components_token_dashboard_tokenusagedashboard",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/tck-ui/src/components/right_panel.ts",
+      "source_location": "L6",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "crates_tck_ui_src_components_scaffold_panel",
+      "target": "crates_tck_ui_src_app_state_appstate",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/tck-ui/src/components/scaffold_panel.ts",
+      "source_location": "L3",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "crates_tck_ui_src_components_scaffold_panel",
+      "target": "crates_tck_ui_src_api_scaffoldrepo",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/tck-ui/src/components/scaffold_panel.ts",
+      "source_location": "L5",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "crates_tck_ui_src_components_settings_modal",
+      "target": "crates_tck_ui_src_app_state_appstate",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/tck-ui/src/components/settings_modal.ts",
+      "source_location": "L3",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "crates_tck_ui_src_components_sidebar",
+      "target": "crates_tck_ui_src_app_state_appstate",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/tck-ui/src/components/sidebar.ts",
+      "source_location": "L3",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "crates_tck_ui_src_components_sidebar",
+      "target": "crates_tck_ui_src_components_source_control_sourcecontrol",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/tck-ui/src/components/sidebar.ts",
+      "source_location": "L5",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "crates_tck_ui_src_components_sidebar",
+      "target": "crates_tck_ui_src_components_scaffold_panel_scaffoldpanel",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/tck-ui/src/components/sidebar.ts",
+      "source_location": "L6",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "crates_tck_ui_src_components_source_control",
+      "target": "crates_tck_ui_src_app_state_appstate",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/tck-ui/src/components/source_control.ts",
+      "source_location": "L3",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "crates_tck_ui_src_components_source_control",
+      "target": "crates_tck_ui_src_api_fetchrepos",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/tck-ui/src/components/source_control.ts",
+      "source_location": "L4",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "crates_tck_ui_src_components_source_control",
+      "target": "crates_tck_ui_src_api_fetchcontents",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/tck-ui/src/components/source_control.ts",
+      "source_location": "L4",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "crates_tck_ui_src_components_source_control",
+      "target": "crates_tck_ui_src_api_commitfile",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/tck-ui/src/components/source_control.ts",
+      "source_location": "L4",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "crates_tck_ui_src_components_title_bar",
+      "target": "crates_tck_ui_src_app_state_appstate",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/tck-ui/src/components/title_bar.ts",
+      "source_location": "L3",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "crates_tck_ui_src_components_token_dashboard",
+      "target": "crates_tck_ui_src_app_state_appstate",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/tck-ui/src/components/token_dashboard.ts",
+      "source_location": "L3",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "crates_tck_ui_src_main",
+      "target": "crates_tck_ui_src_state_appstate",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/tck-ui/src/main.ts",
+      "source_location": "L3",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "crates_tck_ui_src_main",
+      "target": "crates_tck_ui_src_components_title_bar_titlebar",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/tck-ui/src/main.ts",
+      "source_location": "L4",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "crates_tck_ui_src_main",
+      "target": "crates_tck_ui_src_components_sidebar_sidebar",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/tck-ui/src/main.ts",
+      "source_location": "L5",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "crates_tck_ui_src_main",
+      "target": "crates_tck_ui_src_components_right_panel_rightpanel",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/tck-ui/src/main.ts",
+      "source_location": "L6",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "crates_tck_ui_src_main",
+      "target": "crates_tck_ui_src_components_settings_modal_settingsmodal",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/tck-ui/src/main.ts",
+      "source_location": "L7",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "crates_tck_ui_src_main",
+      "target": "crates_tck_ui_src_components_instance_dashboard_instancedashboard",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/tck-ui/src/main.ts",
+      "source_location": "L8",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "crates_tck_ui_src_main",
+      "target": "crates_tck_ui_src_components_terminal_panel_terminal",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/tck-ui/src/main.ts",
+      "source_location": "L9",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "crates_tck_ui_src_state",
+      "target": "crates_tck_ui_src_types_settings",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/tck-ui/src/state.ts",
+      "source_location": "L3",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "crates_tck_ui_src_state",
+      "target": "crates_tck_ui_src_types_providerconfig",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/tck-ui/src/state.ts",
+      "source_location": "L3",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "crates_tck_ui_src_state",
+      "target": "crates_tck_ui_src_types_customcommand",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/tck-ui/src/state.ts",
+      "source_location": "L3",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "crates_tck_ui_src_state",
+      "target": "crates_tck_ui_src_types_chatmsg",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/tck-ui/src/state.ts",
+      "source_location": "L3",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "crates_tck_ui_src_state",
+      "target": "crates_tck_ui_src_types_generaterequest",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/tck-ui/src/state.ts",
+      "source_location": "L3",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "crates_tck_ui_src_state",
+      "target": "crates_tck_ui_src_types_generateresponse",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/tck-ui/src/state.ts",
+      "source_location": "L3",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "crates_tck_ui_src_state",
+      "target": "crates_tck_ui_src_types_agenttokenusage",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/tck-ui/src/state.ts",
+      "source_location": "L3",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "crates_tck_ui_src_state",
+      "target": "crates_tck_ui_src_types_instancestate",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/tck-ui/src/state.ts",
+      "source_location": "L3",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "crates_tck_ui_src_state",
+      "target": "crates_tck_ui_src_types_instanceinfo",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/tck-ui/src/state.ts",
+      "source_location": "L3",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "crates_tck_ui_src_state",
+      "target": "crates_tck_ui_src_types_githubstatus",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/tck-ui/src/state.ts",
+      "source_location": "L3",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "crates_tck_ui_src_state",
+      "target": "crates_tck_ui_src_types_repoinfo",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/tck-ui/src/state.ts",
+      "source_location": "L3",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "crates_tck_ui_src_state",
+      "target": "crates_tck_ui_src_types_repoentry",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/tck-ui/src/state.ts",
+      "source_location": "L3",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "crates_tck_ui_src_state",
+      "target": "crates_tck_ui_src_types_catalogmodel",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/tck-ui/src/state.ts",
+      "source_location": "L3",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "crates_tck_ui_src_state",
+      "target": "crates_tck_ui_src_types_scaffoldtemplate",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/tck-ui/src/state.ts",
+      "source_location": "L3",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "crates_tck_ui_src_state",
+      "target": "crates_tck_ui_src_types_knownagents",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/tck-ui/src/state.ts",
+      "source_location": "L3",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "crates_tck_ui_src_state",
+      "target": "crates_tck_ui_src_types_providerpresets",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/tck-ui/src/state.ts",
+      "source_location": "L3",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "crates_tck_ui_src_state",
+      "target": "crates_tck_ui_src_types_claudemodels",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/tck-ui/src/state.ts",
+      "source_location": "L3",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "crates_tck_ui_src_state",
+      "target": "crates_tck_ui_src_types_scaffoldtemplates",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/tck-ui/src/state.ts",
+      "source_location": "L3",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "crates_tck_ui_src_state",
+      "target": "crates_tck_ui_src_types_agentcolor",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/tck-ui/src/state.ts",
+      "source_location": "L3",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "crates_tck_ui_src_state",
+      "target": "crates_tck_ui_src_types_bucketagent",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/tck-ui/src/state.ts",
+      "source_location": "L3",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "crates_tck_ui_src_state",
+      "target": "crates_tck_ui_src_types_usagepct",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/tck-ui/src/state.ts",
+      "source_location": "L3",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "crates_tck_ui_src_state",
+      "target": "crates_tck_ui_src_types_parseplan",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/tck-ui/src/state.ts",
+      "source_location": "L3",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "crates_tck_ui_src_state",
+      "target": "crates_tck_ui_src_types_fallbackplan",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/tck-ui/src/state.ts",
+      "source_location": "L3",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "crates_tck_ui_src_state",
+      "target": "crates_tck_ui_src_types_orchestratorroles",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/tck-ui/src/state.ts",
+      "source_location": "L3",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "crates_tck_ui_src_state",
+      "target": "crates_tck_ui_src_types_plannersystem",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/tck-ui/src/state.ts",
+      "source_location": "L3",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "crates_tck_ui_src_state",
+      "target": "crates_tck_ui_src_types_plannerprompt",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/tck-ui/src/state.ts",
+      "source_location": "L3",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "crates_tck_ui_src_state",
+      "target": "crates_tck_ui_src_types_workerprompt",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/tck-ui/src/state.ts",
+      "source_location": "L3",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "crates_tck_ui_src_state",
+      "target": "crates_tck_ui_src_types_synthesizersystem",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/tck-ui/src/state.ts",
+      "source_location": "L3",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "crates_tck_ui_src_state",
+      "target": "crates_tck_ui_src_types_synthesizerprompt",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/tck-ui/src/state.ts",
+      "source_location": "L3",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "crates_tck_ui_src_state",
+      "target": "crates_tck_ui_src_types_rolebyid",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/tck-ui/src/state.ts",
+      "source_location": "L3",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "crates_tck_ui_src_state",
+      "target": "crates_tck_ui_src_types_agentstatecolor",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/tck-ui/src/state.ts",
+      "source_location": "L3",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "crates_tck_ui_src_state",
+      "target": "crates_tck_ui_src_types_agentstateicon",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/tck-ui/src/state.ts",
+      "source_location": "L3",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "crates_tck_ui_src_state",
+      "target": "crates_tck_ui_src_types_agentstatelabel",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/tck-ui/src/state.ts",
+      "source_location": "L3",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "crates_tck_ui_src_state",
+      "target": "crates_tck_ui_src_types_agentstateiconchar",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/tck-ui/src/state.ts",
+      "source_location": "L3",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "crates_tck_ui_src_state",
+      "target": "crates_tck_ui_src_types_instanceicon",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/tck-ui/src/state.ts",
+      "source_location": "L3",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "crates_tck_ui_src_state",
+      "target": "crates_tck_ui_src_types_agentstatecssclass",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/tck-ui/src/state.ts",
+      "source_location": "L3",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "crates_tck_ui_src_state",
+      "target": "crates_tck_ui_src_types_instancewsurl",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/tck-ui/src/state.ts",
+      "source_location": "L3",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "tck_ai_src_generate",
+      "target": "tck_ai_src_types_generaterequest",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "tck-ai/src/generate.ts",
+      "source_location": "L18",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "tck_ai_src_generate",
+      "target": "tck_ai_src_types_generateresponse",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "tck-ai/src/generate.ts",
+      "source_location": "L18",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "tck_ai_src_models",
+      "target": "tck_ai_src_types_modelsdevcatalog",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "tck-ai/src/models.ts",
+      "source_location": "L13",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "tck_ai_src_models",
+      "target": "tck_ai_src_types_modelsdevmodel",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "tck-ai/src/models.ts",
+      "source_location": "L13",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "tck_ai_src_models",
+      "target": "tck_ai_src_types_modelinfo",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "tck-ai/src/models.ts",
+      "source_location": "L13",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "tck_ai_src_models",
+      "target": "tck_ai_src_types_providerinfo",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "tck-ai/src/models.ts",
+      "source_location": "L13",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "tck_ai_src_server",
+      "target": "tck_ai_src_generate_generate",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "tck-ai/src/server.ts",
+      "source_location": "L15",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "tck_ai_src_server",
+      "target": "tck_ai_src_models_getmodels",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "tck-ai/src/server.ts",
+      "source_location": "L16",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "tck_ai_src_server",
+      "target": "tck_ai_src_models_getproviders",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "tck-ai/src/server.ts",
+      "source_location": "L16",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "tck_ai_src_server",
+      "target": "tck_ai_src_types_generaterequest",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "tck-ai/src/server.ts",
+      "source_location": "L17",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "crates_tck_ui_src_components_chat_panel_chatpanel",
+      "target": "crates_tck_ui_src_app_state_appstate",
+      "relation": "references",
+      "context": "field",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/tck-ui/src/components/chat_panel.ts",
+      "source_location": "L7",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "c_users_raghu_claude_code_prototype_crates_tck_ui_src_components_chat_panel_chatpanel_constructor",
+      "target": "crates_tck_ui_src_app_state_appstate",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/tck-ui/src/components/chat_panel.ts",
+      "source_location": "L12",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "crates_tck_ui_src_components_instance_dashboard_instancedashboard",
+      "target": "crates_tck_ui_src_app_state_appstate",
+      "relation": "references",
+      "context": "field",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/tck-ui/src/components/instance_dashboard.ts",
+      "source_location": "L15",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "c_users_raghu_claude_code_prototype_crates_tck_ui_src_components_instance_dashboard_instancedashboard_constructor",
+      "target": "crates_tck_ui_src_app_state_appstate",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/tck-ui/src/components/instance_dashboard.ts",
+      "source_location": "L18",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "crates_tck_ui_src_components_orchestrator_panel_orchestratorpanel",
+      "target": "crates_tck_ui_src_app_state_appstate",
+      "relation": "references",
+      "context": "field",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/tck-ui/src/components/orchestrator_panel.ts",
+      "source_location": "L21",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "c_users_raghu_claude_code_prototype_crates_tck_ui_src_components_orchestrator_panel_orchestratorpanel_constructor",
+      "target": "crates_tck_ui_src_app_state_appstate",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/tck-ui/src/components/orchestrator_panel.ts",
+      "source_location": "L29",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "crates_tck_ui_src_components_right_panel_rightpanel",
+      "target": "crates_tck_ui_src_app_state_appstate",
+      "relation": "references",
+      "context": "field",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/tck-ui/src/components/right_panel.ts",
+      "source_location": "L9",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "crates_tck_ui_src_components_right_panel_rightpanel",
+      "target": "crates_tck_ui_src_components_chat_panel_chatpanel",
+      "relation": "references",
+      "context": "field",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/tck-ui/src/components/right_panel.ts",
+      "source_location": "L12",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "crates_tck_ui_src_components_right_panel_rightpanel",
+      "target": "crates_tck_ui_src_components_orchestrator_panel_orchestratorpanel",
+      "relation": "references",
+      "context": "field",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/tck-ui/src/components/right_panel.ts",
+      "source_location": "L13",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "crates_tck_ui_src_components_right_panel_rightpanel",
+      "target": "crates_tck_ui_src_components_token_dashboard_tokenusagedashboard",
+      "relation": "references",
+      "context": "field",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/tck-ui/src/components/right_panel.ts",
+      "source_location": "L14",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "c_users_raghu_claude_code_prototype_crates_tck_ui_src_components_right_panel_rightpanel_constructor",
+      "target": "crates_tck_ui_src_app_state_appstate",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/tck-ui/src/components/right_panel.ts",
+      "source_location": "L16",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "crates_tck_ui_src_components_scaffold_panel_scaffoldpanel",
+      "target": "crates_tck_ui_src_app_state_appstate",
+      "relation": "references",
+      "context": "field",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/tck-ui/src/components/scaffold_panel.ts",
+      "source_location": "L8",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "c_users_raghu_claude_code_prototype_crates_tck_ui_src_components_scaffold_panel_scaffoldpanel_constructor",
+      "target": "crates_tck_ui_src_app_state_appstate",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/tck-ui/src/components/scaffold_panel.ts",
+      "source_location": "L13",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "crates_tck_ui_src_components_settings_modal_settingsmodal",
+      "target": "crates_tck_ui_src_app_state_appstate",
+      "relation": "references",
+      "context": "field",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/tck-ui/src/components/settings_modal.ts",
+      "source_location": "L7",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "c_users_raghu_claude_code_prototype_crates_tck_ui_src_components_settings_modal_settingsmodal_constructor",
+      "target": "crates_tck_ui_src_app_state_appstate",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/tck-ui/src/components/settings_modal.ts",
+      "source_location": "L13",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "crates_tck_ui_src_components_sidebar_sidebar",
+      "target": "crates_tck_ui_src_app_state_appstate",
+      "relation": "references",
+      "context": "field",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/tck-ui/src/components/sidebar.ts",
+      "source_location": "L9",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "c_users_raghu_claude_code_prototype_crates_tck_ui_src_components_sidebar_sidebar_constructor",
+      "target": "crates_tck_ui_src_app_state_appstate",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/tck-ui/src/components/sidebar.ts",
+      "source_location": "L12",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "crates_tck_ui_src_components_source_control_sourcecontrol",
+      "target": "crates_tck_ui_src_app_state_appstate",
+      "relation": "references",
+      "context": "field",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/tck-ui/src/components/source_control.ts",
+      "source_location": "L8",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "c_users_raghu_claude_code_prototype_crates_tck_ui_src_components_source_control_sourcecontrol_constructor",
+      "target": "crates_tck_ui_src_app_state_appstate",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/tck-ui/src/components/source_control.ts",
+      "source_location": "L11",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "crates_tck_ui_src_components_title_bar_titlebar",
+      "target": "crates_tck_ui_src_app_state_appstate",
+      "relation": "references",
+      "context": "field",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/tck-ui/src/components/title_bar.ts",
+      "source_location": "L6",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "c_users_raghu_claude_code_prototype_crates_tck_ui_src_components_title_bar_titlebar_constructor",
+      "target": "crates_tck_ui_src_app_state_appstate",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/tck-ui/src/components/title_bar.ts",
+      "source_location": "L9",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "crates_tck_ui_src_state_appstate",
+      "target": "crates_tck_ui_src_types_settings",
+      "relation": "references",
+      "context": "field",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/tck-ui/src/state.ts",
+      "source_location": "L18",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "crates_tck_ui_src_state_appstate",
+      "target": "crates_tck_ui_src_types_chatmsg",
+      "relation": "references",
+      "context": "field",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/tck-ui/src/state.ts",
+      "source_location": "L23",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "crates_tck_ui_src_state_appstate",
+      "target": "crates_tck_ui_src_types_agenttokenusage",
+      "relation": "references",
+      "context": "field",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/tck-ui/src/state.ts",
+      "source_location": "L29",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "crates_tck_ui_src_state_appstate",
+      "target": "crates_tck_ui_src_types_githubstatus",
+      "relation": "references",
+      "context": "field",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/tck-ui/src/state.ts",
+      "source_location": "L31",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "crates_tck_ui_src_state_appstate",
+      "target": "crates_tck_ui_src_types_repoinfo",
+      "relation": "references",
+      "context": "field",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/tck-ui/src/state.ts",
+      "source_location": "L32",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "crates_tck_ui_src_state_appstate",
+      "target": "crates_tck_ui_src_types_repoentry",
+      "relation": "references",
+      "context": "field",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/tck-ui/src/state.ts",
+      "source_location": "L35",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "crates_tck_ui_src_state_appstate",
+      "target": "crates_tck_ui_src_types_catalogmodel",
+      "relation": "references",
+      "context": "field",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/tck-ui/src/state.ts",
+      "source_location": "L38",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "crates_tck_ui_src_state_appstate",
+      "target": "crates_tck_ui_src_types_instancestate",
+      "relation": "references",
+      "context": "field",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/tck-ui/src/state.ts",
+      "source_location": "L40",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "c_users_raghu_claude_code_prototype_crates_tck_ui_src_state_appstate_loadsettings",
+      "target": "crates_tck_ui_src_types_settings",
+      "relation": "references",
+      "context": "return_type",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/tck-ui/src/state.ts",
+      "source_location": "L70",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "c_users_raghu_claude_code_prototype_crates_tck_ui_src_state_appstate_loadinstances",
+      "target": "crates_tck_ui_src_types_instancestate",
+      "relation": "references",
+      "context": "return_type",
+      "confidence": "EXTRACTED",
+      "source_file": "crates/tck-ui/src/state.ts",
+      "source_location": "L96",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "c_users_raghu_claude_code_prototype_tck_ai_src_models_cacheentry",
+      "target": "tck_ai_src_types_modelsdevcatalog",
+      "relation": "references",
+      "context": "field",
+      "confidence": "EXTRACTED",
+      "source_file": "tck-ai/src/models.ts",
+      "source_location": "L22",
+      "weight": 1.0,
+      "_origin": "ast"
+    }
+  ],
+  "input_tokens": 0,
+  "output_tokens": 0
+}

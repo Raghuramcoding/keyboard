@@ -1,0 +1,250 @@
+{
+  "nodes": [
+    {
+      "id": "doc:opencode-model-picker-diagnostics",
+      "label": "OpenCode Model Picker Diagnostics",
+      "type": "doc",
+      "source_file": "# OpenCode Model Picker Diagnostics.md",
+      "line_start": 1,
+      "line_end": 70,
+      "confidence": 0.9,
+      "provenance": "EXTRACTED"
+    },
+    {
+      "id": "skill:hallmark",
+      "label": "Hallmark Skill",
+      "type": "skill",
+      "source_file": ".agents/skills/hallmark/SKILL.md",
+      "line_start": 1,
+      "line_end": 559,
+      "confidence": 0.9,
+      "provenance": "EXTRACTED"
+    },
+    {
+      "id": "doc:anti-patterns",
+      "label": "Anti-patterns Reference",
+      "type": "doc",
+      "source_file": ".agents/skills/hallmark/references/anti-patterns.md",
+      "line_start": 1,
+      "line_end": 418,
+      "confidence": 0.9,
+      "provenance": "EXTRACTED"
+    },
+    {
+      "id": "doc:assets",
+      "label": "Assets Reference",
+      "type": "doc",
+      "source_file": ".agents/skills/hallmark/references/assets.md",
+      "line_start": 1,
+      "line_end": 406,
+      "confidence": 0.9,
+      "provenance": "EXTRACTED"
+    },
+    {
+      "id": "doc:color",
+      "label": "Color Reference",
+      "type": "doc",
+      "source_file": ".agents/skills/hallmark/references/color.md",
+      "line_start": 1,
+      "line_end": 95,
+      "confidence": 0.9,
+      "provenance": "EXTRACTED"
+    },
+    {
+      "id": "doc:component-cookbook",
+      "label": "Component Cookbook",
+      "type": "doc",
+      "source_file": ".agents/skills/hallmark/references/component-cookbook.md",
+      "line_start": 1,
+      "line_end": 265,
+      "confidence": 0.9,
+      "provenance": "EXTRACTED"
+    },
+    {
+      "id": "component:c1-outlined-chip",
+      "label": "C1 Outlined Chip",
+      "type": "component",
+      "source_file": ".agents/skills/hallmark/references/components/c1-outlined-chip.md",
+      "line_start": 1,
+      "line_end": 50,
+      "confidence": 0.9,
+      "provenance": "EXTRACTED"
+    },
+    {
+      "id": "component:c2-inline-form-as-cta",
+      "label": "C2 Inline Form as CTA",
+      "type": "component",
+      "source_file": ".agents/skills/hallmark/references/components/c2-inline-form-as-cta.md",
+      "line_start": 1,
+      "line_end": 50,
+      "confidence": 0.9,
+      "provenance": "EXTRACTED"
+    },
+    {
+      "id": "component:c3-typographic-link",
+      "label": "C3 Typographic Link",
+      "type": "component",
+      "source_file": ".agents/skills/hallmark/references/components/c3-typographic-link.md",
+      "line_start": 1,
+      "line_end": 50,
+      "confidence": 0.9,
+      "provenance": "EXTRACTED"
+    },
+    {
+      "id": "component:c4-sticky-bottom-bar",
+      "label": "C4 Sticky Bottom Bar",
+      "type": "component",
+      "source_file": ".agents/skills/hallmark/references/components/c4-sticky-bottom-bar.md",
+      "line_start": 1,
+      "line_end": 50,
+      "confidence": 0.9,
+      "provenance": "EXTRACTED"
+    },
+    {
+      "id": "component:f1-bento-grid",
+      "label": "F1 Bento Grid",
+      "type": "component",
+      "source_file": ".agents/skills/hallmark/references/components/f1-bento-grid.md",
+      "line_start": 1,
+      "line_end": 50,
+      "confidence": 0.9,
+      "provenance": "EXTRACTED"
+    },
+    {
+      "id": "component:f2-sticky-scroll-stack",
+      "label": "F2 Sticky Scroll Stack",
+      "type": "component",
+      "source_file": ".agents/skills/hallmark/references/components/f2-sticky-scroll-stack.md",
+      "line_start": 1,
+      "line_end": 50,
+      "confidence": 0.9,
+      "provenance": "EXTRACTED"
+    },
+    {
+      "id": "component:f3-tabular-spec-sheet",
+      "label": "F3 Tabular Spec Sheet",
+      "type": "component",
+      "source_file": ".agents/skills/hallmark/references/components/f3-tabular-spec-sheet.md",
+      "line_start": 1,
+      "line_end": 50,
+      "confidence": 0.9,
+      "provenance": "EXTRACTED"
+    },
+    {
+      "id": "component:f4-step-sequence",
+      "label": "F4 Step Sequence",
+      "type": "component",
+      "source_file": ".agents/skills/hallmark/references/components/f4-step-sequence.md",
+      "line_start": 1,
+      "line_end": 50,
+      "confidence": 0.9,
+      "provenance": "EXTRACTED"
+    },
+    {
+      "id": "component:f5-annotated-screenshot",
+      "label": "F5 Annotated Screenshot",
+      "type": "component",
+      "source_file": ".agents/skills/hallmark/references/components/f5-annotated-screenshot.md",
+      "line_start": 1,
+      "line_end": 50,
+      "confidence": 0.9,
+      "provenance": "EXTRACTED"
+    },
+    {
+      "id": "component:f6-product-card-grid",
+      "label": "F6 Product Card Grid",
+      "type": "component",
+      "source_file": ".agents/skills/hallmark/references/components/f6-product-card-grid.md",
+      "line_start": 1,
+      "line_end": 50,
+      "confidence": 0.9,
+      "provenance": "EXTRACTED"
+    },
+    {
+      "id": "component:ft1-mast-headed",
+      "label": "FT1 Mast Headed",
+      "type": "component",
+      "source_file": ".agents/skills/hallmark/references/components/ft1-mast-headed.md",
+      "line_start": 1,
+      "line_end": 50,
+      "confidence": 0.9,
+      "provenance": "EXTRACTED"
+    },
+    {
+      "id": "component:ft2-inline-rule-single-line",
+      "label": "FT2 Inline Rule Single Line",
+      "type": "component",
+      "source_file": ".agents/skills/hallmark/references/components/ft2-inline-rule-single-line.md",
+      "line_start": 1,
+      "line_end": 50,
+      "confidence": 0.9,
+      "provenance": "EXTRACTED"
+    },
+    {
+      "id": "component:ft3-index-style-category-list",
+      "label": "FT3 Index Style Category List",
+      "type": "component",
+      "source_file": ".agents/skills/hallmark/references/components/ft3-index-style-category-list.md",
+      "line_start": 1,
+      "line_end": 50,
+      "confidence": 0.9,
+      "provenance": "EXTRACTED"
+    },
+    {
+      "id": "component:ft4-dense-typographic",
+      "label": "FT4 Dense Typographic",
+      "type": "component",
+      "source_file": ".agents/skills/hallmark/references/components/ft4-dense-typographic.md",
+      "line_start": 1,
+      "line_end": 50,
+      "confidence": 0.9,
+      "provenance": "EXTRACTED"
+    },
+    {
+      "id": "component:ft5-statement",
+      "label": "FT5 Statement",
+      "type": "component",
+      "source_file": ".agents/skills/hallmark/references/components/ft5-statement.md",
+      "line_start": 1,
+      "line_end": 50,
+      "confidence": 0.9,
+      "provenance": "EXTRACTED"
+    },
+    {
+      "id": "component:ft6-letter-close",
+      "label": "FT6 Letter Close",
+      "type": "component",
+      "source_file": ".agents/skills/hallmark/references/components/ft6-letter-close.md",
+      "line_start": 1,
+      "line_end": 50,
+      "confidence": 0.9,
+      "provenance": "EXTRACTED"
+    }
+  ],
+  "edges": [
+    {"source": "skill:hallmark", "target": "doc:opencode-model-picker-diagnostics", "type": "references", "confidence": 0.7, "provenance": "INFERRED"},
+    {"source": "skill:hallmark", "target": "doc:anti-patterns", "type": "references", "confidence": 0.9, "provenance": "EXTRACTED"},
+    {"source": "skill:hallmark", "target": "doc:assets", "type": "references", "confidence": 0.9, "provenance": "EXTRACTED"},
+    {"source": "skill:hallmark", "target": "doc:color", "type": "references", "confidence": 0.9, "provenance": "EXTRACTED"},
+    {"source": "skill:hallmark", "target": "doc:component-cookbook", "type": "references", "confidence": 0.9, "provenance": "EXTRACTED"},
+    {"source": "skill:hallmark", "target": "component:c1-outlined-chip", "type": "contains", "confidence": 0.8, "provenance": "INFERRED"},
+    {"source": "skill:hallmark", "target": "component:c2-inline-form-as-cta", "type": "contains", "confidence": 0.8, "provenance": "INFERRED"},
+    {"source": "skill:hallmark", "target": "component:c3-typographic-link", "type": "contains", "confidence": 0.8, "provenance": "INFERRED"},
+    {"source": "skill:hallmark", "target": "component:c4-sticky-bottom-bar", "type": "contains", "confidence": 0.8, "provenance": "INFERRED"},
+    {"source": "skill:hallmark", "target": "component:f1-bento-grid", "type": "contains", "confidence": 0.8, "provenance": "INFERRED"},
+    {"source": "skill:hallmark", "target": "component:f2-sticky-scroll-stack", "type": "contains", "confidence": 0.8, "provenance": "INFERRED"},
+    {"source": "skill:hallmark", "target": "component:f3-tabular-spec-sheet", "type": "contains", "confidence": 0.8, "provenance": "INFERRED"},
+    {"source": "skill:hallmark", "target": "component:f4-step-sequence", "type": "contains", "confidence": 0.8, "provenance": "INFERRED"},
+    {"source": "skill:hallmark", "target": "component:f5-annotated-screenshot", "type": "contains", "confidence": 0.8, "provenance": "INFERRED"},
+    {"source": "skill:hallmark", "target": "component:f6-product-card-grid", "type": "contains", "confidence": 0.8, "provenance": "INFERRED"},
+    {"source": "skill:hallmark", "target": "component:ft1-mast-headed", "type": "contains", "confidence": 0.8, "provenance": "INFERRED"},
+    {"source": "skill:hallmark", "target": "component:ft2-inline-rule-single-line", "type": "contains", "confidence": 0.8, "provenance": "INFERRED"},
+    {"source": "skill:hallmark", "target": "component:ft3-index-style-category-list", "type": "contains", "confidence": 0.8, "provenance": "INFERRED"},
+    {"source": "skill:hallmark", "target": "component:ft4-dense-typographic", "type": "contains", "confidence": 0.8, "provenance": "INFERRED"},
+    {"source": "skill:hallmark", "target": "component:ft5-statement", "type": "contains", "confidence": 0.8, "provenance": "INFERRED"},
+    {"source": "skill:hallmark", "target": "component:ft6-letter-close", "type": "contains", "confidence": 0.8, "provenance": "INFERRED"}
+  ],
+  "hyperedges": [],
+  "input_tokens": 0,
+  "output_tokens": 0
+}
