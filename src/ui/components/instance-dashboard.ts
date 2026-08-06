@@ -1,6 +1,16 @@
 import { BaseComponent } from './base.js';
 import { InstanceKind, InstanceStatus, type InstanceInfo } from '../../core/types.js';
 
+// The output pane is plain text, so drop the control sequences a real shell
+// emits: OSC strings (incl. VS Code's 633 shell integration) and CSI/escape codes.
+const OSC = /\x1b\][^\x07\x1b]*(?:\x07|\x1b\\)/g;
+const CSI = /\x1b\[[0-9;?]*[ -/]*[@-~]/g;
+const ESC = /\x1b[@-Z\\-_]/g;
+
+function stripAnsi(data: string): string {
+  return data.replace(OSC, '').replace(CSI, '').replace(ESC, '');
+}
+
 export class InstanceDashboard extends BaseComponent {
   private socket?: WebSocket;
 
@@ -90,7 +100,7 @@ export class InstanceDashboard extends BaseComponent {
       input.disabled = false;
     });
     socket.addEventListener('message', (event: MessageEvent<string>) => {
-      output.textContent += event.data;
+      output.textContent += stripAnsi(event.data);
       output.scrollTop = output.scrollHeight;
     });
     socket.addEventListener('close', () => {
