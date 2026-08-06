@@ -29,3 +29,6 @@ Thumbs.db
 Landing page and design system.zip
 landing/
 .thumbnail
+
+# Node
+node_modules/

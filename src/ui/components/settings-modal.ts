@@ -20,11 +20,11 @@ export class SettingsModal extends BaseComponent {
           <div class="modal-body">
             <div>
               <div class="field-label">Claude API key</div>
-              <input type="password" class="field-input" value="${this.state.settings.claude_api_key}">
+              <input type="password" class="field-input" id="claudeKey" value="${this.escape(this.state.settings.claude_api_key)}">
             </div>
             <div>
               <div class="field-label">Ollama host</div>
-              <input class="field-input" value="${this.state.settings.ollama_host}">
+              <input class="field-input" id="ollamaHost" value="${this.escape(this.state.settings.ollama_host)}">
             </div>
           </div>
           <div class="modal-footer">
@@ -35,17 +35,24 @@ export class SettingsModal extends BaseComponent {
       </div>
     `;
 
-    this.element.querySelector('#modalClose')?.addEventListener('click', () => {
+    const close = () => {
       this.state.showSettings = false;
       this.render();
-    });
-    this.element.querySelector('#modalCancel')?.addEventListener('click', () => {
-      this.state.showSettings = false;
-      this.render();
-    });
+    };
+
+    this.element.querySelector('#modalClose')?.addEventListener('click', close);
+    this.element.querySelector('#modalCancel')?.addEventListener('click', close);
     this.element.querySelector('#modalSave')?.addEventListener('click', () => {
-      this.state.showSettings = false;
-      this.render();
+      const claudeKey = this.element.querySelector<HTMLInputElement>('#claudeKey');
+      const ollamaHost = this.element.querySelector<HTMLInputElement>('#ollamaHost');
+      if (claudeKey) this.state.settings.claude_api_key = claudeKey.value;
+      if (ollamaHost) this.state.settings.ollama_host = ollamaHost.value;
+      this.state.persistSettings();
+      close();
+    });
+    this.element.querySelector('#settingsModal')?.addEventListener('click', (e: Event) => {
+      // Only a click on the backdrop itself dismisses the modal.
+      if (e.target === e.currentTarget) close();
     });
   }
 }

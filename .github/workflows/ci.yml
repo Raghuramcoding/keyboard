@@ -16,36 +16,24 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install Rust
-        uses: dtolnay/rust-toolchain@stable
-        with:
-          targets: wasm32-unknown-unknown
-          components: clippy
-
-      - uses: Swatinem/rust-cache@v2
-
-      - name: Install Trunk
-        uses: jetli/trunk-action@v0.5.0
-        with:
-          version: latest
-
-      - name: Check workspace (native crates)
-        run: cargo clippy -p tck-core -p tck-server -- -D warnings
-
-      - name: Build WASM UI
-        working-directory: crates/tck-ui
-        run: trunk build --release
-
-      - name: Build native server
-        run: cargo build -p tck-server --release
-
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: "22"
 
+      - name: Install dependencies
+        run: npm install
+
+      - name: TypeScript check
+        run: npm run typecheck
+
+      - name: Build UI
+        run: npm run build
+
+      - name: Install tck-ai dependencies
+        working-directory: tck-ai
+        run: npm install
+
       - name: TypeScript check tck-ai
         working-directory: tck-ai
-        run: |
-          npm install
-          npm run typecheck
+        run: npm run typecheck

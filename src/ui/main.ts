@@ -5,13 +5,17 @@ import { RightPanel } from './components/right-panel.js';
 import { SettingsModal } from './components/settings-modal.js';
 import { InstanceDashboard } from './components/instance-dashboard.js';
 
+let dashboard: InstanceDashboard | undefined;
+let settingsModal: SettingsModal | undefined;
+
 export function initApp(): void {
     state.loadInstances();
+    state.loadSettings();
     renderApp();
 
-    window.addEventListener('hashchange', () => {
-        renderApp();
-    });
+    window.addEventListener('hashchange', renderApp);
+    // Re-render only the modal so open/close does not tear down the terminal.
+    window.addEventListener('app-state-changed', () => settingsModal?.render());
 }
 
 function renderApp(): void {
@@ -20,6 +24,10 @@ function renderApp(): void {
 
     const hash = window.location.hash;
     const showLanding = !hash || hash === '#';
+
+    dashboard?.dispose();
+    dashboard = undefined;
+    settingsModal = undefined;
 
     if (showLanding) {
         root.innerHTML = `
@@ -65,9 +73,7 @@ function renderApp(): void {
             <div id="titlebar"></div>
             <div class="body">
                 <div id="sidebar"></div>
-                <div class="main">
-                    <div id="instance-dashboard"></div>
-                </div>
+                <div class="main" id="instance-dashboard"></div>
                 <div id="right-panel"></div>
             </div>
             <div id="settings-modal"></div>
@@ -82,9 +88,15 @@ function renderApp(): void {
 
     if (titlebarEl) new TitleBar(state, titlebarEl).render();
     if (sidebarEl) new Sidebar(state, sidebarEl).render();
-    if (dashboardEl) new InstanceDashboard(state, dashboardEl).render();
+    if (dashboardEl) {
+        dashboard = new InstanceDashboard(state, dashboardEl);
+        dashboard.render();
+    }
     if (rightPanelEl) new RightPanel(state, rightPanelEl).render();
-    if (settingsEl) new SettingsModal(state, settingsEl).render();
+    if (settingsEl) {
+        settingsModal = new SettingsModal(state, settingsEl);
+        settingsModal.render();
+    }
 }
 
 initApp();
