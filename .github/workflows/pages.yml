@@ -1,8 +1,8 @@
 name: Deploy to GitHub Pages
 
-# Publishes the WebAssembly UI to GitHub Pages on every push to main.
-# The deployed site is static, so the terminal (which needs the native
-# tck-server) is unavailable there; AI calls go directly to the provider.
+# Publishes the static UI to GitHub Pages on every push to main.
+# The deployed site has no server, so terminals are unavailable there;
+# AI calls have to go directly to the provider from the browser.
 on:
   push:
     branches: [main]
@@ -30,39 +30,22 @@ jobs:
         with:
           enablement: true
 
-      - name: Install Rust
-        uses: dtolnay/rust-toolchain@stable
-        with:
-          targets: wasm32-unknown-unknown
-
-      - uses: Swatinem/rust-cache@v2
-
-      - name: Install Trunk
-        uses: jetli/trunk-action@v0.5.0
-        with:
-          version: latest
-
       - name: Install Node.js
         uses: actions/setup-node@v4
         with:
           node-version: "22"
 
-      - name: Build tck-ai browser bundle
-        working-directory: tck-ai
-        run: |
-          npm ci
-          npm run build:browser
-          cp dist/tck-ai.js ../crates/tck-ui/assets/
+      - name: Install dependencies
+        run: npm install
 
       # Pages serves the repo at /<repo>/, so assets must be referenced there.
-      - name: Build WASM UI
-        working-directory: crates/tck-ui
-        run: trunk build --release --public-url /keyboard/
+      - name: Build UI
+        run: npm run build -- --base=/keyboard/
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: crates/tck-ui/dist
+          path: dist
 
   deploy:
     needs: build

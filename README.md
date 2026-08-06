@@ -1,13 +1,14 @@
 # ⌨️ T.C.K — TalentCloud Keyboard
 
 [![CI](https://github.com/Raghuramcoding/keyboard/actions/workflows/ci.yml/badge.svg)](https://github.com/Raghuramcoding/keyboard/actions/workflows/ci.yml)
-[![Rust](https://img.shields.io/badge/built%20with-Rust-orange?logo=rust)](https://www.rust-lang.org)
+[![TypeScript](https://img.shields.io/badge/built%20with-TypeScript-3178c6?logo=typescript)](https://www.typescriptlang.org)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
 **T.C.K (TalentCloud Keyboard)** is an AI-powered coding environment that runs
-**in your browser** (or as a native desktop app). The UI compiles to WebAssembly
-(Dioxus); a native server provides real shell terminals, and a TypeScript AI
-service (`tck-ai`) uses the Vercel AI SDK for unified provider access.
+**in your browser**. The UI is a TypeScript SPA built with Vite; a Node server
+(Hono) provides real shell terminals over WebSocket, proxies AI requests, and
+talks to GitHub. A standalone AI service (`tck-ai`) is also included for
+deploying provider access separately.
 
 ## Features
 
@@ -17,15 +18,13 @@ service (`tck-ai`) uses the Vercel AI SDK for unified provider access.
   own PTY session that keeps running even if you close the tab.
 - 💬 **AI chat instances** — create standalone AI chat sessions alongside your
   terminal tools. Chat histories persist across page reloads via `localStorage`.
-- 🦀 **Rust core** — `tck-ui` (Dioxus/WASM frontend), `tck-server` (axum
-  backend), `tck-core` (shared types). AI service (`tck-ai`) uses **TypeScript +
-  Vercel AI SDK**.
-- 🌐 **Browser or desktop** — run as a web app in any browser, or install as a
-  native desktop app (WebView2 on Windows, WebKit on macOS/Linux).
+- 🧩 **TypeScript everywhere** — `src/ui` (Vite SPA), `src/server` (Hono + node-pty),
+  `src/core` (shared types). AI access uses the **Vercel AI SDK**.
+- 🌐 **Runs in any browser** — served by the local Node server.
 - 📱 **Responsive** — a 3-column desktop layout that collapses to a touch-friendly
   tabbed layout on phones.
 - 💻 **Real terminals** — each tool instance gets its own genuine shell session
-  via a pseudo-terminal (`portable-pty`): PowerShell on Windows, `$SHELL`
+  via a pseudo-terminal (`node-pty`): PowerShell on Windows, `$SHELL`
   (zsh/bash) on macOS & Linux, streamed to the browser over WebSocket with
   reconnection support (64 KB ring buffer per session).
 - 🤖 **Multi-provider AI** — Ollama, Claude, and any OpenAI-compatible endpoint
@@ -71,33 +70,32 @@ service (`tck-ai`) uses the Vercel AI SDK for unified provider access.
 └──────────────────────────────────────────────────────┘
 ```
 
-| Crate           | Target                   | Responsibility                       |
-|-----------------|--------------------------|--------------------------------------|
-| `tck-core`      | both                     | Shared serde types, provider presets |
-| `tck-ui`        | `wasm32-unknown-unknown` | Dioxus UI compiled to WebAssembly    |
-| `tck-server`    | native                   | axum server: AI proxy + PTY + static |
-| `tck-desktop`   | native + webview         | Desktop app (embeds server + WASM)   |
+| Module          | Target  | Responsibility                              |
+|-----------------|---------|---------------------------------------------|
+| `src/core`      | both    | Shared types (instances, settings, AI)      |
+| `src/ui`        | browser | Vite SPA: landing page, dashboard, chat     |
+| `src/server`    | node    | Hono server: AI proxy + PTY + static assets |
+| `tck-ai`        | node    | Standalone AI service (Vercel AI SDK)       |
 
 ## Quick start
 
 ### Prerequisites
 
-- [Rust](https://rustup.rs) (stable)
-- WASM target: `rustup target add wasm32-unknown-unknown`
-- [Trunk](https://trunkrs.dev): `cargo install trunk`
+- [Node.js](https://nodejs.org) 22 or newer
 
 ### Build & run
 
 ```bash
-# 1. Build the WebAssembly UI
-cd crates/tck-ui
-trunk build --release
-cd ../..
+# 1. Install dependencies
+npm install
 
-# 2. Run the server (serves the UI + provides terminals/AI)
-cargo run -p tck-server --release
+# 2. Build the UI into dist/
+npm run build
 
-# 3. Open the app
+# 3. Run the server (serves dist/ + provides terminals/AI)
+npm start
+
+# 4. Open the app
 #    http://127.0.0.1:3000
 ```
 
@@ -119,13 +117,16 @@ Once the server is running, open the app and you'll see the **Dashboard** view:
 
 ```bash
 # Terminal 1 — the backend
-cargo run -p tck-server
+npm run dev:server
 
 # Terminal 2 — the UI with hot reload (proxies /api and /ws to :3000)
-cd crates/tck-ui
-trunk serve
+npm run dev
 # open http://127.0.0.1:8080
 ```
+
+> **Note:** the desktop app, Windows installer, and `scripts/build.ps1` below
+> are from the earlier Rust/WASM implementation and are not buildable against
+> the current TypeScript sources.
 
 ## Desktop App
 
@@ -186,8 +187,8 @@ your browser. See [installer/README.md](installer/README.md) for details.
 
 | Variable                   | Default              | Meaning                                        |
 |----------------------------|----------------------|------------------------------------------------|
-| `TCK_ADDR`                 | `127.0.0.1:3000`     | Address the server binds to                    |
-| `TCK_DIST`                 | `crates/tck-ui/dist` | Directory of the built WASM bundle             |
+| `PORT`                     | `3000`               | Port the server binds to                       |
+| `TCK_DIST`                 | `dist`               | Directory of the built UI bundle               |
 | `TCK_GITHUB_CLIENT_ID`     | —                    | GitHub OAuth App client id (enables Git)       |
 | `TCK_GITHUB_CLIENT_SECRET` | —                    | GitHub OAuth App client secret                 |
 | `TCK_GITHUB_CALLBACK`      | derived from Host    | Override the OAuth callback URL (non-localhost)|
@@ -236,8 +237,8 @@ phone can't run the native server itself, point it at a T.C.K server on your
 **same Wi-Fi**:
 
 ```bash
-# Bind to all interfaces so the phone can reach you
-TCK_ADDR=0.0.0.0:3000 cargo run -p tck-server --release
+# The server listens on all interfaces, so the phone can reach it
+npm start
 ```
 
 Then on the phone open `http://<your-computer-LAN-IP>:3000` (e.g.

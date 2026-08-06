@@ -13,7 +13,7 @@ export class RightPanel extends BaseComponent {
           </span>
           <span class="chat-title">AI Chat</span>
           <div class="spacer"></div>
-          <span class="model-pill">${this.state.model}</span>
+          <span class="model-pill">${this.escape(this.state.model)}</span>
         </div>
         <div class="chat-messages" id="chat-messages">
           <div class="msg-ai">
@@ -31,37 +31,69 @@ export class RightPanel extends BaseComponent {
       </div>
     `;
 
-    this.element.querySelector('#chat-send')?.addEventListener('click', async () => {
-      const input = this.element.querySelector('#chat-input') as HTMLTextAreaElement;
+    const input = this.element.querySelector<HTMLTextAreaElement>('#chat-input');
+    const sendBtn = this.element.querySelector<HTMLButtonElement>('#chat-send');
+    const messages = this.element.querySelector<HTMLElement>('#chat-messages');
+    if (!input || !sendBtn || !messages) return;
+
+    const send = async () => {
       const text = input.value.trim();
-      if (!text) return;
+      if (!text || sendBtn.disabled) return;
 
-      const messages = this.element.querySelector('#chat-messages');
-      messages.innerHTML += `
-        <div class="msg-user">
-          <div class="msg-who">You</div>
-          <div class="msg-bubble-user">${text}</div>
-        </div>
-      `;
+      this.appendMessage(messages, 'You', text, false);
       input.value = '';
+      sendBtn.disabled = true;
 
-      // Call AI API
-      const resp = await fetch('/api/ai/generate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          provider: this.state.provider,
-          model: this.state.model,
-          prompt: text,
-        }),
-      });
-      const data = await resp.json();
-      messages.innerHTML += `
-        <div class="msg-ai">
-          <div class="msg-who ai">Assistant</div>
-          <div class="msg-bubble-ai">${data.response || data.error}</div>
-        </div>
-      `;
+      try {
+        const resp = await fetch('/api/ai/generate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            provider: this.state.provider,
+            model: this.state.model,
+            prompt: text,
+            api_key: this.state.provider === 'claude'
+              ? this.state.settings.claude_api_key || undefined
+              : undefined,
+            base_url: this.state.provider === 'ollama'
+              ? this.state.settings.ollama_host || undefined
+              : undefined,
+          }),
+        });
+        const data = await resp.json() as { response?: string; error?: string };
+        this.appendMessage(messages, 'Assistant', data.response ?? data.error ?? 'No response', true);
+      } catch (err) {
+        const reason = err instanceof Error ? err.message : 'Request failed';
+        this.appendMessage(messages, 'Assistant', `Request failed: ${reason}`, true);
+      } finally {
+        sendBtn.disabled = false;
+      }
+    };
+
+    sendBtn.addEventListener('click', () => void send());
+    input.addEventListener('keydown', (e: KeyboardEvent) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        void send();
+      }
     });
+  }
+
+  /** Append a chat bubble. Text is set via textContent so it is never parsed as HTML. */
+  private appendMessage(container: HTMLElement, who: string, text: string, isAi: boolean): void {
+    const wrapper = document.createElement('div');
+    wrapper.className = isAi ? 'msg-ai' : 'msg-user';
+
+    const label = document.createElement('div');
+    label.className = isAi ? 'msg-who ai' : 'msg-who';
+    label.textContent = who;
+
+    const bubble = document.createElement('div');
+    bubble.className = isAi ? 'msg-bubble-ai' : 'msg-bubble-user';
+    bubble.textContent = text;
+
+    wrapper.append(label, bubble);
+    container.appendChild(wrapper);
+    container.scrollTop = container.scrollHeight;
   }
 }

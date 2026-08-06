@@ -10,7 +10,7 @@ services:
     build: .
     restart: unless-stopped
     environment:
-      TCK_ADDR: "0.0.0.0:3000"
+      PORT: "3000"
       TCK_DIST: "/app/dist"
     # env_file passes values to the container literally (no interpolation), so
     # secrets and the bcrypt hash with '$' survive intact. Provides TCK_GITHUB_*.

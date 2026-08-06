@@ -25,9 +25,6 @@ jobs:
           # JS/TS are analyzed together as one CodeQL language.
           - language: javascript-typescript
             build-mode: none
-          # Rust only supports build-mode: none (no autobuild/manual mode).
-          - language: rust
-            build-mode: none
 
     steps:
       - name: Checkout repository

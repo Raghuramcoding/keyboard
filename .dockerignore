@@ -1,6 +1,5 @@
-target
-**/target
-crates/tck-ui/dist
+node_modules
+**/node_modules
 dist
 release
 .git

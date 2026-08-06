@@ -13,6 +13,8 @@ export enum InstanceKind { Terminal, Chat }
 export enum AgentState { Idle, Working, Done, Blocked, Error }
 export enum InstanceStatus { Running, Stopped, Error }
 export interface InstanceInfo { id: string; kind: InstanceKind; label: string; command?: string; cwd?: string; status: InstanceStatus; error?: string; created_at: number; agent_state: AgentState; last_output_at: number; }
+export interface CreateInstanceRequest { kind: InstanceKind; label?: string; command?: string; cwd?: string; }
+export interface UpdateInstanceRequest { label?: string; status?: InstanceStatus; agent_state?: AgentState; }
 export type EventMessage =
   | { type: 'agent_state_changed'; instance_id: string; old_state: AgentState; new_state: AgentState; hint: string; timestamp: number; }
   | { type: 'instance_status_changed'; instance_id: string; status: InstanceStatus; timestamp: number; }

@@ -4,9 +4,9 @@
 
 ## Checklist
 
-- [ ] `cargo clippy -p tck-core -p tck-server -- -D warnings` passes
-- [ ] `trunk build --release` (in `crates/tck-ui`) passes
-- [ ] `cargo build -p tck-server --release` passes
+- [ ] `npm run typecheck` passes
+- [ ] `npm run build` passes
+- [ ] `npm run typecheck` in `tck-ai` passes (if that service changed)
 - [ ] I matched the existing code style
 
 ## Notes

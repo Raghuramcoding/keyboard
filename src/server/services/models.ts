@@ -20,7 +20,7 @@ export async function fetchCatalog(): Promise<ModelsDevCatalog> {
   if (cache && now < cache.expiresAt) return cache.data;
   const resp = await fetch(MODELS_DEV_API);
   if (!resp.ok) throw new Error(`models.dev API returned ${resp.status}`);
-  const data = await resp.json() as ModelsDev laCatalog;
+  const data = await resp.json() as ModelsDevCatalog;
   cache = { data, expiresAt: now + CACHE_TTL_MS };
   return data;
 }
